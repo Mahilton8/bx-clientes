@@ -1,0 +1,1720 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gestão de Clientes · Barra Xingu</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+:root{
+  --navy:#0E2A47;
+  --navy-2:#123458;
+  --amber:#FF9F1C;
+  --amber-dark:#E07C00;
+  --steel:#3D7EA6;
+  --danger:#E4572E;
+  --success:#2E8B57;
+  --warn:#D9A441;
+  --bg:#F3F5F8;
+  --card:#FFFFFF;
+  --line:#E4E8EE;
+  --text:#1B2634;
+  --muted:#69758A;
+  --radius:14px;
+}
+*{box-sizing:border-box;}
+body{margin:0;background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;-webkit-font-smoothing:antialiased;}
+h1,h2,h3{font-family:'Space Grotesk',sans-serif;margin:0;}
+.mono{font-family:'JetBrains Mono',monospace;}
+
+/* ---- header ---- */
+.topbar{
+  background:linear-gradient(120deg,var(--navy) 0%,var(--navy-2) 100%);
+  color:#fff;padding:26px 32px 22px;position:relative;overflow:hidden;
+}
+.topbar::after{
+  content:"";position:absolute;left:0;right:0;bottom:0;height:4px;
+  background-image:repeating-linear-gradient(90deg,var(--amber) 0 26px, transparent 26px 44px);
+  opacity:.9;
+}
+.topbar-inner{display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:14px;max-width:1400px;margin:0 auto;}
+.eyebrow{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--amber);font-weight:600;margin-bottom:6px;}
+.topbar h1{font-size:26px;font-weight:700;letter-spacing:-.01em;}
+.topbar .sub{color:#B9C6D8;font-size:13px;margin-top:4px;}
+.topbar-meta{text-align:right;font-size:12px;color:#B9C6D8;}
+.topbar-meta b{color:#fff;display:block;font-size:13px;}
+
+/* ---- shell ---- */
+.shell{max-width:1400px;margin:0 auto;padding:22px 32px 60px;}
+
+/* ---- filters ---- */
+.filters{
+  background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+  padding:16px 18px;display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end;
+  margin-bottom:20px;box-shadow:0 1px 2px rgba(14,42,71,.04);
+}
+.f-group{display:flex;flex-direction:column;gap:5px;min-width:150px;flex:1 1 150px;}
+.f-group label{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;}
+.f-group select,.f-group input{
+  border:1px solid var(--line);border-radius:8px;padding:9px 10px;font-family:'Inter',sans-serif;
+  font-size:13.5px;background:#fbfcfd;color:var(--text);outline:none;transition:border .15s;
+}
+.f-group select:focus,.f-group input:focus{border-color:var(--amber);}
+
+/* ---- multi-select ---- */
+.ms-wrap{position:relative;}
+.ms-toggle{
+  width:100%;text-align:left;border:1px solid var(--line);border-radius:8px;padding:9px 10px;
+  background:#fbfcfd;font-family:'Inter',sans-serif;font-size:13.5px;color:var(--text);cursor:pointer;
+  display:flex;justify-content:space-between;align-items:center;gap:8px;
+}
+.ms-toggle:hover{border-color:var(--steel);}
+.ms-toggle .chev{color:var(--muted);font-size:10px;}
+.ms-panel{
+  position:absolute;top:calc(100% + 6px);left:0;right:0;z-index:40;
+  background:#fff;border:1px solid var(--line);border-radius:10px;box-shadow:0 8px 24px rgba(14,42,71,.14);
+  padding:10px;min-width:260px;
+}
+.ms-panel input[type="text"]{
+  width:100%;border:1px solid var(--line);border-radius:7px;padding:8px 9px;font-size:13px;
+  margin-bottom:8px;font-family:'Inter',sans-serif;outline:none;
+}
+.ms-actions{display:flex;justify-content:space-between;margin-bottom:8px;}
+.ms-actions button{
+  background:none;border:none;color:var(--steel);font-size:11.5px;font-weight:600;cursor:pointer;padding:2px 4px;
+}
+.ms-actions button:hover{text-decoration:underline;}
+.ms-list{max-height:220px;overflow-y:auto;border-top:1px solid var(--line);padding-top:4px;}
+.ms-row{display:flex;align-items:center;gap:8px;padding:6px 4px;border-radius:6px;font-size:12.8px;cursor:pointer;}
+.ms-row:hover{background:#F5F7FA;}
+.ms-row input{margin:0;accent-color:var(--amber);}
+.ms-empty{font-size:12px;color:var(--muted);text-align:center;padding:14px 0;}
+.f-actions{display:flex;gap:8px;}
+.btn{
+  border:none;border-radius:8px;padding:10px 16px;font-size:13px;font-weight:600;cursor:pointer;
+  font-family:'Inter',sans-serif;transition:transform .1s, opacity .15s;
+}
+.btn:active{transform:scale(.97);}
+.btn-primary{background:var(--amber);color:#1B2634;}
+.btn-primary:hover{background:var(--amber-dark);}
+.btn-ghost{background:transparent;border:1px solid var(--line);color:var(--muted);}
+.btn-ghost:hover{border-color:var(--steel);color:var(--steel);}
+
+/* ---- kpis ---- */
+.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px;}
+.kpi{
+  background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px 18px;
+  position:relative;overflow:hidden;box-shadow:0 1px 2px rgba(14,42,71,.04);
+}
+.kpi::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--amber);}
+.kpi .k-label{font-size:11.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;font-weight:600;}
+.kpi .k-value{font-family:'Space Grotesk',sans-serif;font-size:24px;font-weight:700;margin-top:6px;color:var(--navy);}
+.kpi .k-note{font-size:12px;color:var(--muted);margin-top:4px;}
+.kpi.alt::before{background:var(--steel);}
+.kpi.warn::before{background:var(--danger);}
+.k-delta{font-size:12px;font-weight:700;margin-top:6px;display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:20px;}
+.k-delta.up{background:#E7F6EC;color:var(--success);}
+.k-delta.down{background:#FBEAE5;color:var(--danger);}
+.k-delta.flat{background:#F0F2F5;color:var(--muted);}
+
+.alert-banner{
+  display:flex;gap:14px;align-items:flex-start;background:var(--card);border:1px solid var(--line);
+  border-left:4px solid var(--danger);border-radius:var(--radius);padding:14px 18px;
+  box-shadow:0 1px 2px rgba(14,42,71,.04);
+}
+.alert-banner.ok{border-left-color:var(--success);}
+.alert-banner.mid{border-left-color:var(--warn);}
+.alert-icon{font-size:18px;color:var(--danger);line-height:1;margin-top:2px;}
+.alert-banner.ok .alert-icon{color:var(--success);}
+.alert-banner.mid .alert-icon{color:var(--warn);}
+.alert-body{flex:1;}
+.alert-title{font-weight:700;font-size:13.5px;color:var(--navy);margin-bottom:3px;}
+.alert-sub{font-size:12.5px;color:var(--muted);margin-bottom:8px;}
+.conc-bar{height:7px;border-radius:4px;background:#EEF1F5;overflow:hidden;max-width:420px;}
+.conc-bar-fill{height:100%;background:var(--danger);border-radius:4px;transition:width .3s;}
+.alert-banner.ok .conc-bar-fill{background:var(--success);}
+.alert-banner.mid .conc-bar-fill{background:var(--warn);}
+
+/* ---- grid / cards ---- */
+.grid-2{display:grid;grid-template-columns:1.3fr 1fr;gap:16px;margin-bottom:16px;}
+.grid-eq{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;}
+.card{
+  background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+  padding:18px 20px;box-shadow:0 1px 2px rgba(14,42,71,.04);
+}
+.card-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;gap:10px;flex-wrap:wrap;}
+.card-head h3{font-size:15px;font-weight:600;color:var(--navy);}
+.card-head .tag{font-size:11px;background:#FFF3E0;color:var(--amber-dark);padding:3px 9px;border-radius:20px;font-weight:600;}
+.card-sub{font-size:12px;color:var(--muted);margin-top:-8px;margin-bottom:12px;}
+.chart-wrap{position:relative;height:280px;}
+.chart-wrap.tall{height:340px;}
+.empty-msg{color:var(--muted);font-size:13px;text-align:center;padding:40px 10px;}
+
+/* ---- tables ---- */
+table{width:100%;border-collapse:collapse;font-size:12.8px;}
+th{
+  text-align:left;font-size:10.8px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;
+  padding:8px 10px;border-bottom:2px solid var(--line);font-weight:700;position:sticky;top:0;background:#fff;
+  cursor:pointer;user-select:none;
+}
+th:hover{color:var(--steel);}
+th .arrow{opacity:.4;font-size:10px;margin-left:3px;}
+td{padding:9px 10px;border-bottom:1px solid var(--line);color:var(--text);}
+tr:hover td{background:#FAFBFD;}
+.table-scroll{max-height:420px;overflow-y:auto;border:1px solid var(--line);border-radius:10px;}
+.badge{display:inline-block;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:700;}
+.badge-ok{background:#E7F6EC;color:var(--success);}
+.badge-warn{background:#FCF3E3;color:var(--warn);}
+.badge-danger{background:#FBEAE5;color:var(--danger);}
+.num{text-align:right;font-family:'JetBrains Mono',monospace;font-size:12.3px;}
+.client-name-cell{cursor:pointer;font-weight:600;color:var(--navy);}
+.client-name-cell:hover{color:var(--amber-dark);text-decoration:underline;}
+
+/* ---- heatmap ---- */
+.heatmap-scroll{overflow-x:auto;}
+.heat-table{border-collapse:collapse;font-size:11px;min-width:700px;}
+.heat-table th{white-space:nowrap;font-size:10px;padding:6px 8px;}
+.heat-table td{padding:0;text-align:center;border:1px solid #fff;}
+.heat-cell{width:56px;height:30px;display:flex;align-items:center;justify-content:center;font-size:10.5px;font-family:'JetBrains Mono',monospace;color:#fff;cursor:default;}
+.heat-name{padding:6px 10px !important;text-align:left;font-weight:600;color:var(--navy);font-size:11.5px;white-space:nowrap;cursor:pointer;}
+.heat-name:hover{color:var(--amber-dark);}
+
+/* ---- legend ---- */
+.legend-row{display:flex;gap:16px;flex-wrap:wrap;align-items:center;font-size:11.5px;color:var(--muted);margin-top:10px;}
+.legend-dot{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:5px;}
+
+footer{max-width:1400px;margin:0 auto;padding:0 32px 30px;color:var(--muted);font-size:11.5px;}
+
+@media (max-width:980px){
+  .kpi-row{grid-template-columns:repeat(2,1fr);}
+  .grid-2,.grid-eq{grid-template-columns:1fr;}
+  .topbar{padding:20px 18px 18px;}
+  .shell{padding:16px 14px 40px;}
+  .topbar h1{font-size:21px;}
+}
+@media (max-width:560px){
+  .kpi-row{grid-template-columns:1fr 1fr;}
+  .kpi .k-value{font-size:19px;}
+  .filters{flex-direction:column;align-items:stretch;}
+  .f-group{min-width:0;}
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-inner">
+    <div>
+      <div class="eyebrow">Barra Xingu · Painel de Gestão</div>
+      <h1>Gestão de Clientes — Faturamento TMS</h1>
+      <div class="sub">Faturas de frete (CT-e / Minuta) por cliente · base de vencimento</div>
+    </div>
+    <div class="topbar-meta">
+      <b id="metaGerado">—</b>
+      <span id="metaPeriodo">—</span>
+    </div>
+  </div>
+</div>
+
+<div class="shell">
+
+  <div class="filters">
+    <div class="f-group">
+      <label>Ano</label>
+      <select id="fAno"><option value="">Todos</option></select>
+    </div>
+    <div class="f-group">
+      <label>Mês</label>
+      <select id="fMes"><option value="">Todos</option></select>
+    </div>
+    <div class="f-group ms-wrap" style="flex:2 1 240px;">
+      <label>Clientes</label>
+      <button type="button" class="ms-toggle" id="msToggle">
+        <span id="msToggleLabel">Todos os clientes</span><span class="chev">▾</span>
+      </button>
+      <div class="ms-panel" id="msPanel" hidden>
+        <input type="text" id="msSearch" placeholder="Buscar cliente...">
+        <div class="ms-actions">
+          <button type="button" id="msSelectAll">Selecionar todos</button>
+          <button type="button" id="msClear">Limpar seleção</button>
+        </div>
+        <div class="ms-list" id="msList"></div>
+      </div>
+    </div>
+    <div class="f-actions">
+      <button class="btn btn-ghost" id="btnReset">Limpar filtros</button>
+    </div>
+  </div>
+
+  <div class="kpi-row">
+    <div class="kpi">
+      <div class="k-label">Faturamento no período</div>
+      <div class="k-value" id="kpiTotal">—</div>
+      <div class="k-note" id="kpiTotalNote">—</div>
+      <div class="k-delta" id="kpiTotalDelta"></div>
+    </div>
+    <div class="kpi alt">
+      <div class="k-label">Clientes ativos</div>
+      <div class="k-value" id="kpiClientes">—</div>
+      <div class="k-note" id="kpiClientesNote">no período filtrado</div>
+    </div>
+    <div class="kpi alt">
+      <div class="k-label">Ticket médio / fatura</div>
+      <div class="k-value" id="kpiTicket">—</div>
+      <div class="k-note" id="kpiTicketNote">—</div>
+    </div>
+    <div class="kpi warn">
+      <div class="k-label">Cliente destaque</div>
+      <div class="k-value" id="kpiTop" style="font-size:16px;">—</div>
+      <div class="k-note" id="kpiTopNote">—</div>
+    </div>
+  </div>
+
+  <div class="alert-banner" id="alertConcentracao" style="margin-bottom:20px;">
+    <div class="alert-icon">⚠</div>
+    <div class="alert-body">
+      <div class="alert-title" id="alertConcTitle">—</div>
+      <div class="alert-sub" id="alertConcSub">—</div>
+      <div class="conc-bar"><div class="conc-bar-fill" id="alertConcBar"></div></div>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-head">
+        <h3>Evolução mensal do faturamento</h3>
+        <span class="tag" id="tagEvolucao">Todos os clientes</span>
+      </div>
+      <div class="chart-wrap"><canvas id="chartEvolucao"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-head">
+        <h3>Top 10 clientes</h3>
+      </div>
+      <div class="card-sub">Clique num cliente para ver o histórico detalhado</div>
+      <div class="chart-wrap"><canvas id="chartTop10"></canvas></div>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-head">
+        <h3 id="histTitle">Histórico do cliente</h3>
+        <span class="tag" id="histTag">selecione um cliente</span>
+      </div>
+      <div class="chart-wrap" id="histWrap"><canvas id="chartHistorico"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-head"><h3>Forma de recebimento</h3></div>
+      <div class="card-sub">Distribuição do valor faturado por forma</div>
+      <div class="chart-wrap"><canvas id="chartForma"></canvas></div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:16px;">
+    <div class="card-head">
+      <h3>Tendência — crescimento e queda por cliente</h3>
+      <span class="tag" id="tagTendencia">—</span>
+    </div>
+    <div class="card-sub" id="tendenciaSub">Compara os últimos 3 meses de faturamento com os 3 meses anteriores, por cliente</div>
+    <div class="chart-wrap tall"><canvas id="chartTendencia"></canvas></div>
+    <div class="table-scroll" style="margin-top:14px;max-height:320px;">
+      <table id="tblTendencia">
+        <thead>
+          <tr>
+            <th data-key="cliente">Cliente <span class="arrow"></span></th>
+            <th data-key="anterior">3 meses anteriores <span class="arrow"></span></th>
+            <th data-key="recente">Últimos 3 meses <span class="arrow"></span></th>
+            <th data-key="variacao">Variação (R$) <span class="arrow"></span></th>
+            <th data-key="variacaoPct">Variação (%) <span class="arrow"></span></th>
+            <th>Situação</th>
+          </tr>
+        </thead>
+        <tbody id="tblTendenciaBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:16px;">
+    <div class="card-head">
+      <h3>Recência de compra — dias sem faturar</h3>
+      <span class="tag">atualizado em <span id="refDateTag"></span></span>
+    </div>
+    <div class="card-sub">Última emissão por cliente · ordenável por coluna · destaque para clientes em risco de churn</div>
+    <div class="legend-row">
+      <span><span class="legend-dot" style="background:var(--success);"></span>até 30 dias</span>
+      <span><span class="legend-dot" style="background:var(--warn);"></span>31–60 dias</span>
+      <span><span class="legend-dot" style="background:var(--danger);"></span>acima de 60 dias</span>
+    </div>
+    <br>
+    <div class="table-scroll">
+      <table id="tblRecencia">
+        <thead>
+          <tr>
+            <th data-key="cliente">Cliente <span class="arrow"></span></th>
+            <th data-key="ultima">Última fatura <span class="arrow"></span></th>
+            <th data-key="dias">Dias sem comprar <span class="arrow"></span></th>
+            <th data-key="total">Faturamento total <span class="arrow"></span></th>
+            <th data-key="qtd">Nº faturas <span class="arrow"></span></th>
+            <th data-key="status">Status</th>
+          </tr>
+        </thead>
+        <tbody id="tblRecenciaBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:16px;">
+    <div class="card-head">
+      <h3>Prioridade de contato</h3>
+      <span class="tag" id="tagPrioridade">—</span>
+    </div>
+    <div class="card-sub">Ranking de clientes parados que mais vale ligar primeiro — combina tempo sem comprar e valor histórico faturado</div>
+    <div class="legend-row">
+      <span><span class="legend-dot" style="background:var(--danger);"></span>Alta prioridade</span>
+      <span><span class="legend-dot" style="background:var(--warn);"></span>Média prioridade</span>
+      <span><span class="legend-dot" style="background:var(--steel);"></span>Baixa prioridade</span>
+    </div>
+    <br>
+    <div class="table-scroll">
+      <table id="tblPrioridade">
+        <thead>
+          <tr>
+            <th style="width:26px;">#</th>
+            <th data-key="cliente">Cliente <span class="arrow"></span></th>
+            <th data-key="dias">Dias sem comprar <span class="arrow"></span></th>
+            <th data-key="ultima">Última fatura <span class="arrow"></span></th>
+            <th data-key="total">Faturamento histórico <span class="arrow"></span></th>
+            <th data-key="qtd">Nº faturas <span class="arrow"></span></th>
+            <th>Prioridade</th>
+          </tr>
+        </thead>
+        <tbody id="tblPrioridadeBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:16px;">
+    <div class="card-head">
+      <h3>Matriz RFV — Recência × Frequência × Valor</h3>
+      <span class="tag">segmentação de clientes</span>
+    </div>
+    <div class="card-sub">Cada bolha é um cliente · eixo X = dias sem comprar · eixo Y = nº de faturas · tamanho da bolha = valor total faturado · linhas tracejadas = mediana da base</div>
+    <div class="chart-wrap tall"><canvas id="chartRfv"></canvas></div>
+
+    <div class="grid-eq" style="margin-top:16px;margin-bottom:0;">
+      <div class="card" style="box-shadow:none;border-style:dashed;">
+        <div class="card-head"><h3 style="font-size:13.5px;">Ticket médio por segmento</h3></div>
+        <div class="card-sub">Compara o valor médio por fatura entre os grupos da matriz RFV</div>
+        <div class="chart-wrap" style="height:220px;"><canvas id="chartTicketSegmento"></canvas></div>
+      </div>
+      <div class="card" style="box-shadow:none;border-style:dashed;">
+        <div class="card-head"><h3 style="font-size:13.5px;">Leitura rápida</h3></div>
+        <div id="ticketSegmentoInsight" style="font-size:12.8px;color:var(--muted);line-height:1.6;"></div>
+      </div>
+    </div>
+
+    <div class="table-scroll" style="margin-top:16px;max-height:260px;">
+      <table>
+        <thead><tr><th>Segmento</th><th>Nº clientes</th><th>Faturamento</th><th>Dias médios sem comprar</th><th>Principais clientes</th></tr></thead>
+        <tbody id="tblRfvBody"></tbody>
+      </table>
+    </div>
+
+    <div class="card-head" style="margin-top:20px;">
+      <h3 style="font-size:13.5px;">Enquadramento individual por cliente</h3>
+      <span class="tag" id="tagRfvLista">—</span>
+    </div>
+    <div class="filters" style="margin:0 0 12px;padding:10px 12px;">
+      <div class="f-group" style="min-width:180px;">
+        <label>Segmento</label>
+        <select id="fRfvSegmento">
+          <option value="">Todos</option>
+          <option value="campeoes">Campeões</option>
+          <option value="fieis">Fiéis / Frequentes</option>
+          <option value="risco">Em risco</option>
+          <option value="perdidos">Perdidos / Ocasionais</option>
+        </select>
+      </div>
+      <div class="f-group" style="flex:2 1 200px;">
+        <label>Buscar cliente</label>
+        <input type="text" id="fRfvBusca" placeholder="Nome do cliente...">
+      </div>
+    </div>
+    <div class="table-scroll" style="max-height:360px;">
+      <table id="tblRfvLista">
+        <thead>
+          <tr>
+            <th data-key="cliente">Cliente <span class="arrow"></span></th>
+            <th data-key="quad">Segmento <span class="arrow"></span></th>
+            <th data-key="dias">Dias sem comprar <span class="arrow"></span></th>
+            <th data-key="qtd">Nº faturas <span class="arrow"></span></th>
+            <th data-key="total">Faturamento total <span class="arrow"></span></th>
+          </tr>
+        </thead>
+        <tbody id="tblRfvListaBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:16px;">
+    <div class="card-head">
+      <h3>Mapa de calor — faturamento mensal por cliente</h3>
+      <span class="tag">top 20 clientes por volume</span>
+    </div>
+    <div class="card-sub">Intensidade da cor = valor faturado no mês · clique no nome para filtrar</div>
+    <div class="heatmap-scroll">
+      <table class="heat-table" id="heatTable"></table>
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:16px;">
+    <div class="card-head">
+      <h3>Faturamento potencial perdido</h3>
+      <span class="tag" id="tagPerdido">—</span>
+    </div>
+    <div class="card-sub">Estimativa de receita não gerada por clientes parados, com base no ticket médio e no intervalo médio histórico entre compras de cada cliente</div>
+
+    <div class="filters" style="margin:0 0 14px;padding:12px 14px;">
+      <div class="f-group" style="max-width:160px;">
+        <label>De (dias sem comprar)</label>
+        <input type="number" id="fPerdidoMin" min="0" placeholder="0">
+      </div>
+      <div class="f-group" style="max-width:160px;">
+        <label>Até (dias sem comprar)</label>
+        <input type="number" id="fPerdidoMax" min="0" placeholder="sem limite">
+      </div>
+      <div class="f-actions">
+        <button class="btn btn-primary" id="btnPerdidoAplicar">Aplicar</button>
+        <button class="btn btn-ghost" id="btnPerdidoLimpar">Limpar</button>
+      </div>
+    </div>
+
+    <div class="kpi-row" style="grid-template-columns:repeat(3,1fr);margin-bottom:16px;">
+      <div class="kpi warn">
+        <div class="k-label">Potencial perdido no intervalo</div>
+        <div class="k-value" id="kpiPerdidoTotal">—</div>
+        <div class="k-note" id="kpiPerdidoNote">—</div>
+      </div>
+      <div class="kpi alt">
+        <div class="k-label">Clientes no intervalo</div>
+        <div class="k-value" id="kpiPerdidoClientes">—</div>
+        <div class="k-note">com histórico suficiente p/ estimativa</div>
+      </div>
+      <div class="kpi alt">
+        <div class="k-label">Ciclos de compra perdidos</div>
+        <div class="k-value" id="kpiPerdidoCiclos">—</div>
+        <div class="k-note">somatório de compras esperadas e não realizadas</div>
+      </div>
+    </div>
+
+    <div class="chart-wrap" style="height:260px;margin-bottom:16px;"><canvas id="chartPerdido"></canvas></div>
+
+    <div class="table-scroll">
+      <table id="tblPerdido">
+        <thead>
+          <tr>
+            <th data-key="cliente">Cliente <span class="arrow"></span></th>
+            <th data-key="ticket">Ticket médio (próprio) <span class="arrow"></span></th>
+            <th data-key="intervalo">Intervalo médio entre compras <span class="arrow"></span></th>
+            <th data-key="dias">Dias sem comprar <span class="arrow"></span></th>
+            <th data-key="ciclos">Ciclos perdidos <span class="arrow"></span></th>
+            <th data-key="perdido">Potencial perdido (ticket do grupo) <span class="arrow"></span></th>
+          </tr>
+        </thead>
+        <tbody id="tblPerdidoBody"></tbody>
+      </table>
+    </div>
+    <div class="card-sub" style="margin-top:10px;margin-bottom:0;">
+      Metodologia: ciclos perdidos = dias sem comprar ÷ intervalo médio histórico entre faturas do próprio cliente (arredondado para baixo) · o valor de cada ciclo usa o <strong>ticket médio do grupo</strong> — a média do ticket médio de todos os clientes parados dentro da faixa de dias escolhida no filtro acima, não o ticket individual de cada um · clientes com apenas 1 fatura no histórico não entram (sem cadência para estimar ciclos).
+    </div>
+  </div>
+
+  <div class="grid-eq">
+    <div class="card">
+      <div class="card-head">
+        <h3>Curva ABC de clientes</h3>
+        <span class="tag" id="abcTag">—</span>
+      </div>
+      <div class="card-sub">Concentração de faturamento (Pareto) · classes A (80%) · B (95%) · C (restante)</div>
+      <div class="chart-wrap tall"><canvas id="chartAbc"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-head"><h3>Sazonalidade — faturamento por mês do ano</h3></div>
+      <div class="card-sub">Consolidado de todos os anos disponíveis, por mês calendário</div>
+      <div class="chart-wrap tall"><canvas id="chartSazonal"></canvas></div>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  Painel gerado a partir da base de faturas TMS (CT-e/Minuta) da Barra Xingu · valores líquidos por título · uso interno de gestão.
+</footer>
+
+<script>
+const RAW_DATA = [["JOSE VIDAL DE OLIVEIRA","2025-01-08","2025-01-08",7000.0,"PIX"],["FERNANDO HENRIQUE DA","2025-01-08","2025-01-08",11400.0,"PIX"],["ATH AGROPECURIARIA LTDA","2025-01-08","2025-01-08",3700.0,"PIX"],["JOSE VIDAL DE OLIVEIRA","2025-01-08","2025-01-08",5400.0,"PIX"],["JBS SA","2025-01-09","2025-01-09",33568.41,"PIX"],["SERGIO AMARAL DE","2025-01-10","2025-01-10",3000.0,"PIX"],["AGROPECUARIA VISTA","2025-01-10","2025-01-10",25269.0,"PIX"],["JBS SA","2025-01-10","2025-01-10",33568.41,"PIX"],["ANDRE DE MORAES ZUCATO","2025-01-13","2025-01-13",165257.7,"PIX"],["THAIS MICHELE GOULART E","2025-01-14","2025-01-14",4878.7,"PIX"],["DORIVAL AGULHOM","2025-01-15","2025-01-15",7254.0,"PIX"],["DORIVAL AGULHOM","2025-01-15","2025-01-15",15455.7,"PIX"],["JBS SA","2025-01-16","2025-01-16",41246.44,"PIX"],["JBS SA","2025-01-17","2025-01-17",34523.34,"PIX"],["MARGARETE MARIA TISOTT","2025-01-17","2025-01-17",9800.0,"PIX"],["DORIVAL AGULHOM","2025-01-18","2025-01-18",15323.2,"PIX"],["JULIANA GOULART","2025-01-18","2025-01-18",12762.03,"PIX"],["THAIS MICHELE GOULART E","2025-01-18","2025-01-18",16512.5,"PIX"],["JBS SA","2025-01-20","2025-01-20",10175.7,"PIX"],["JBS S/A","2025-01-20","2025-01-20",1634.41,"PIX"],["ANDRE DE MORAES ZUCATO","2025-01-22","2025-01-22",147446.7,"PIX"],["ANDRE DE MORAES ZUCATO","2025-01-22","2025-01-22",5120.0,"PIX"],["NEURI ZUFFO","2025-01-22","2025-01-22",2450.0,"PIX"],["JBS SA","2025-01-22","2025-01-22",5354.83,"PIX"],["JBS SA","2025-01-23","2025-01-23",41329.57,"Carteira Cash"],["JBS SA","2025-01-23","2025-01-23",1558.87,"Carteira Cash"],["ANDRE DE MORAES ZUCATO","2025-01-23","2025-01-23",147598.65,"PIX"],["JBS SA","2025-01-24","2025-01-24",67578.83,"PIX"],["THAIS MICHELE GOULART E","2025-01-24","2025-01-24",4878.87,"PIX"],["REONILDO DANIEL PRANTE","2025-01-24","2025-01-24",11250.0,"PIX"],["ALEXANDRE GUIDI","2025-01-24","2025-01-24",2200.0,"PIX"],["JBS SA","2025-01-25","2025-01-25",3133.57,"PIX"],["Tecnorural Agropecuaria","2025-01-25","2025-01-25",63104.62,"PIX"],["GILBERTO ANTONIO","2025-01-27","2025-01-27",21000.0,"PIX"],["Agropecuaria Agua Preta S A","2025-01-27","2025-01-27",13680.0,"PIX"],["JBS SA","2025-01-28","2025-01-28",3291.84,"PIX"],["ALCENI ALVES DE FREITAS","2025-01-28","2025-01-28",13500.0,"PIX"],["GIOVANNA FRIEDRICHS","2025-01-30","2025-01-30",4513.39,"PIX"],["MAURICIO CARDOSO TONHA","2025-01-30","2025-01-30",10079.0,"PIX"],["MAURICIO CARDOSO TONHA","2025-01-30","2025-01-30",36850.5,"PIX"],["JBS S/A","2025-01-30","2025-01-30",9505.0,"PIX"],["JBS S/A","2025-01-30","2025-01-30",19975.0,"PIX"],["JBS S/A","2025-01-30","2025-01-30",9600.0,"PIX"],["JBS S/A","2025-01-30","2025-01-30",1200.0,"PIX"],["JBS SA","2025-01-30","2025-01-30",45806.76,"PIX"],["ANDRE DE MORAES ZUCATO","2025-01-30","2025-01-30",49285.2,"PIX"],["OLAVO ARAUJO FERNANDES","2025-01-30","2025-01-30",2500.0,"PIX"],["JBS SA","2025-01-31","2025-01-31",79034.59,"PIX"],["NEURI ZUFFO","2025-02-03","2025-02-03",3700.0,"PIX"],["AGROPECUARIA ATLAS LTDA","2025-02-03","2025-02-03",13505.57,"PIX"],["THALISSON JACOBSEN SEIBT","2025-02-03","2025-02-03",14824.08,"PIX"],["ANA CLAUDIA BORGES DE","2025-02-03","2025-02-03",8750.0,"PIX"],["GILMAR DOMINGOS","2025-02-03","2025-02-03",14444.07,"PIX"],["RODOLFO ABUD CABRERA","2025-02-03","2025-02-03",18890.24,"PIX"],["GIOVANNA FRIEDRICHS","2025-02-03","2025-02-03",7078.95,"PIX"],["MARCELO RIBEIRO DE","2025-02-03","2025-02-03",12698.86,"PIX"],["REONILDO DANIEL PRANTE","2025-02-03","2025-02-03",12000.0,"PIX"],["ANDRE DE MORAES ZUCATO","2025-02-04","2025-02-04",146939.81,"PIX"],["JBS SA","2025-02-04","2025-02-04",4221.44,"PIX"],["JBS SA","2025-02-05","2025-02-05",37795.95,"PIX"],["THALISSON JACOBSEN SEIBT","2025-02-06","2025-02-06",8962.5,"PIX"],["JBS SA","2025-02-06","2025-02-06",34597.6,"PIX"],["Rafael Vicentini de Queiroz","2025-02-06","2025-02-06",232400.0,"PIX"],["CSAP - COMPANHIA SUL","2025-02-06","2025-02-06",195756.96,"PIX"],["ANDRE DE MORAES ZUCATO","2025-02-07","2025-02-07",2544.46,"PIX"],["CONFIANCA TRANSPORTES","2025-02-10","2025-02-10",3971.63,"PIX"],["DORIVAL AGULHOM","2025-02-10","2025-02-10",22069.65,"PIX"],["AMAGGI PECUARIA LTDA.","2025-02-11","2025-02-11",6587.5,"PIX"],["CINTIA MARIA GONCALVES","2025-02-11","2025-02-11",1000.0,"PIX"],["CINTIA MARIA GONCALVES","2025-02-11","2025-02-11",800.0,"PIX"],["JBS S/A","2025-02-11","2025-02-11",25279.5,"PIX"],["JBS S/A","2025-02-11","2025-02-11",12112.5,"PIX"],["GUILHERME AUGUSTO LEAL","2025-02-11","2025-02-11",8019.0,"PIX"],["MAURO LEANDRO LORO","2025-02-11","2025-02-11",24057.0,"PIX"],["H J SANTA FE COMERCIAL E","2025-02-12","2025-02-12",4000.0,"PIX"],["ANDRE DE MORAES ZUCATO","2025-02-12","2025-02-12",96000.0,"PIX"],["ATH AGROPECURIARIA LTDA","2025-02-12","2025-02-12",4350.0,"PIX"],["THAIS MICHELE GOULART E","2025-02-13","2025-02-13",6800.62,"PIX"],["THAIS MICHELE GOULART E","2025-02-13","2025-02-13",6800.62,"PIX"],["FLB AGROPECUARIA LTDA","2025-02-13","2025-02-13",6777.05,"PIX"],["MAURO LEANDRO LORO","2025-02-17","2025-02-17",8014.95,"PIX"],["KARIELLY DE JESUS FARIAS","2025-02-17","2025-02-17",8000.0,"PIX"],["KARIELLY DE JESUS FARIAS","2025-02-17","2025-02-17",10181.64,"PIX"],["ANDRE DE MORAES ZUCATO","2025-02-17","2025-02-17",73846.8,"PIX"],["JBS S/A","2025-02-18","2025-02-18",6555.0,"PIX"],["JBS S/A","2025-02-18","2025-02-18",17432.5,"PIX"],["JBS SA","2025-02-20","2025-02-20",32477.99,"PIX"],["JBS SA","2025-02-20","2025-02-20",29038.7,"PIX"],["JBS SA","2025-02-20","2025-02-20",14187.97,"PIX"],["JBS SA","2025-02-20","2025-02-20",6658.85,"PIX"],["JOSE VIDAL DE OLIVEIRA","2025-02-20","2025-02-20",2950.0,"PIX"],["ANDRE DE MORAES ZUCATO","2025-02-20","2025-02-20",5108.9,"PIX"],["GIOVANNA FRIEDRICHS","2025-02-20","2025-02-20",6937.55,"PIX"],["FERNANDO DE CASTRO","2025-02-20","2025-02-20",3800.0,"PIX"],["LUCIANO JACINTO DA SILVA","2025-02-20","2025-02-20",10080.0,"PIX"],["JBS SA","2025-02-21","2025-02-21",3216.22,"PIX"],["MINERVA S.A.","2025-02-21","2025-02-21",6892.04,"PIX"],["GAGLIARDI REIS","2025-02-21","2025-02-21",7175.43,"PIX"],["GAGLIARDI REIS","2025-02-21","2025-02-21",6828.31,"PIX"],["GAGLIARDI REIS","2025-02-21","2025-02-21",11387.82,"PIX"],["GAGLIARDI REIS","2025-02-21","2025-02-21",2530.13,"PIX"],["EDER DE CARVALHO GODA","2025-02-21","2025-02-21",10893.49,"PIX"],["GAGLIARDI REIS","2025-02-21","2025-02-21",8053.8,"PIX"],["GAGLIARDI REIS","2025-02-21","2025-02-21",7443.51,"PIX"],["JBS SA","2025-02-22","2025-02-22",13334.79,"PIX"],["JBS SA","2025-02-22","2025-02-22",2223.79,"PIX"],["JBS SA","2025-02-24","2025-02-24",53878.0,"PIX"],["JBS SA","2025-02-24","2025-02-24",46860.6,"PIX"],["MAURICIO CARDOSO TONHA","2025-02-24","2025-02-24",36919.25,"PIX"],["GIOVANNA FRIEDRICHS","2025-02-24","2025-02-24",7217.13,"PIX"],["JBS CONFINAMENTO LTDA","2025-02-25","2025-02-25",2660.0,"PIX"],["FERNANDO DE CASTRO","2025-02-26","2025-02-26",3450.0,"PIX"],["GIOVANNA FRIEDRICHS","2025-02-27","2025-02-27",5840.25,"PIX"],["Paulo Humberto Barcelos","2025-02-27","2025-02-27",2950.0,"PIX"],["APOLO VENTURA LEMOS","2025-02-27","2025-02-27",6265.51,"PIX"],["ADILSON LUIZ","2025-02-28","2025-02-28",6000.0,"PIX"],["ADILSON LUIZ","2025-02-28","2025-02-28",6806.2,"PIX"],["ADILSON LUIZ","2025-02-28","2025-02-28",4790.8,"PIX"],["FLAMBOYANT AGRO","2025-02-28","2025-02-28",3800.0,"PIX"],["SEBASTIAO EDSON","2025-02-28","2025-02-28",3000.0,"PIX"],["GUILHERME PINEZZI","2025-03-01","2025-03-01",13431.62,"PIX"],["GUILHERME PINEZZI","2025-03-01","2025-03-01",7000.0,"PIX"],["GUILHERME PINEZZI","2025-03-01","2025-03-01",12772.0,"PIX"],["GUILHERME PINEZZI","2025-03-01","2025-03-01",7000.0,"PIX"],["DORIVAL AGULHOM","2025-03-01","2025-03-01",7261.75,"PIX"],["Dorival Agulhom","2025-03-01","2025-03-01",29412.0,"PIX"],["RUTENBERG ALBUQUERQUE","2025-03-03","2025-03-03",22493.06,"PIX"],["JBS SA","2025-03-03","2025-03-03",46813.28,"PIX"],["JBS SA","2025-03-03","2025-03-03",47323.54,"PIX"],["ATH AGROPECURIARIA LTDA","2025-03-03","2025-03-03",4000.0,"PIX"],["GABRIELA FABER","2025-03-03","2025-03-03",8300.0,"PIX"],["GIOVANNA FRIEDRICHS","2025-03-03","2025-03-03",3450.0,"PIX"],["RODRIGO RAGIOTTO E","2025-03-03","2025-03-03",13053.99,"PIX"],["ANDRE DE MORAES ZUCATO","2025-03-05","2025-03-05",17062.61,"PIX"],["ANDRE DE MORAES ZUCATO","2025-03-05","2025-03-05",8080.48,"PIX"],["Dorival Agulhom","2025-03-05","2025-03-05",22003.2,"PIX"],["JOSE TONTIM DOS SANTOS","2025-03-05","2025-03-05",9667.12,"PIX"],["DANIEL BARBOZA ROSA -","2025-03-05","2025-03-05",19432.99,"PIX"],["ATH AGROPECURIARIA LTDA","2025-03-06","2025-03-06",4000.0,"PIX"],["WENDELL VIEIRA GARCIA","2025-03-06","2025-03-06",1900.0,"PIX"],["JBS SA","2025-03-07","2025-03-07",46774.37,"PIX"],["SEBASTIAO EDSON","2025-03-07","2025-03-07",3700.0,"PIX"],["MAGDA HELENA LAGARES","2025-03-08","2025-03-08",13000.0,"PIX"],["EDER DE CARVALHO GODA","2025-03-08","2025-03-08",6878.69,"PIX"],["EDER DE CARVALHO GODA","2025-03-08","2025-03-08",10735.78,"PIX"],["JBS SA","2025-03-10","2025-03-10",47608.41,"PIX"],["DORZAIDES GOMES DA","2025-03-10","2025-03-10",3806.46,"PIX"],["ROBSON FERNANDO","2025-03-10","2025-03-10",9000.0,"PIX"],["MARIA TEREZA VILELA","2025-03-11","2025-03-11",7064.49,"PIX"],["PEDRO WALDOMIRO","2025-03-11","2025-03-11",4973.33,"PIX"],["NATALIA PEREIRA SOUZA","2025-03-12","2025-03-12",14800.0,"PIX"],["SIMONE MARCHESI","2025-03-12","2025-03-12",4100.87,"PIX"],["Roberto Pereira de Almeida","2025-03-12","2025-03-12",17500.0,"PIX"],["JBS S/A","2025-03-12","2025-03-12",3800.0,"PIX"],["JBS S/A","2025-03-12","2025-03-12",3800.0,"PIX"],["JBS S/A","2025-03-12","2025-03-12",3800.0,"PIX"],["JBS S/A","2025-03-12","2025-03-12",3800.0,"PIX"],["JBS S/A","2025-03-12","2025-03-12",17879.47,"PIX"],["JBS S/A","2025-03-12","2025-03-12",6445.57,"PIX"],["ATH AGROPECURIARIA LTDA","2025-03-13","2025-03-13",10600.0,"PIX"],["JULIO EDUARDO SIMOES E","2025-03-13","2025-03-13",14000.0,"PIX"],["Paulo Humberto Barcelos","2025-03-13","2025-03-13",8000.0,"PIX"],["N M TRANSPORTES LTDA.","2025-03-13","2025-03-13",5485.43,"PIX"],["N M TRANSPORTES LTDA.","2025-03-13","2025-03-13",21606.0,"PIX"],["EDER DE CARVALHO GODA","2025-03-14","2025-03-14",8140.9,"PIX"],["JBS SA","2025-03-15","2025-03-15",43884.89,"PIX"],["JBS SA","2025-03-17","2025-03-17",43116.5,"PIX"],["GIOVANNA FRIEDRICHS","2025-03-18","2025-03-18",7063.49,"PIX"],["BERNARDO BUENO DE","2025-03-18","2025-03-18",3000.0,"PIX"],["WELITON FILHO FREITAS","2025-03-18","2025-03-18",19800.0,"PIX"],["ANDRE DE MORAES ZUCATO","2025-03-19","2025-03-19",2531.9,"PIX"],["EDER DE CARVALHO GODA","2025-03-19","2025-03-19",6738.8,"PIX"],["AUGUSTO BORGES OLIVEIRA","2025-03-19","2025-03-19",3000.0,"PIX"],["ATH AGROPECURIARIA LTDA","2025-03-19","2025-03-19",4350.0,"PIX"],["JBS S/A","2025-03-20","2025-03-20",28560.0,"PIX"],["JBS S/A","2025-03-20","2025-03-20",14220.0,"PIX"],["ATH AGROPECURIARIA LTDA","2025-03-20","2025-03-20",4000.0,"PIX"],["RAND LUCIA FERREIRA","2025-03-20","2025-03-20",4500.0,"PIX"],["GAGLIARDI REIS","2025-03-20","2025-03-20",7570.11,"PIX"],["GAGLIARDI REIS","2025-03-20","2025-03-20",6729.18,"PIX"],["GAGLIARDI REIS","2025-03-20","2025-03-20",6587.4,"PIX"],["JBS S/A","2025-03-20","2025-03-20",6668.59,"PIX"],["THALISSON JACOBSEN SEIBT","2025-03-21","2025-03-21",6500.0,"PIX"],["JBS SA","2025-03-21","2025-03-21",7153.54,"PIX"],["JBS SA","2025-03-21","2025-03-21",42735.83,"PIX"],["BRENNO DE CAMARGO","2025-03-21","2025-03-21",1500.0,"PIX"],["ANGELO FURQUIM CABRAL","2025-03-21","2025-03-21",5392.5,"PIX"],["PAULO ANDRE BENTO","2025-03-24","2025-03-24",16000.0,"PIX"],["Joao Bosco de Rezende","2025-03-24","2025-03-24",3640.0,"PIX"],["Joao Bosco de Rezende","2025-03-24","2025-03-24",5000.0,"PIX"],["GERSHON GENTILIN E","2025-03-24","2025-03-24",32304.78,"PIX"],["N M TRANSPORTES LTDA.","2025-03-24","2025-03-24",42658.79,"PIX"],["JBS SA","2025-03-24","2025-03-24",39958.48,"PIX"],["FLAMBOYANT AGRO","2025-03-24","2025-03-24",3800.0,"PIX"],["TRANSPORTES 4 PATAS","2025-03-25","2025-03-25",53450.4,"PIX"],["LENIEL SALES DE SOUSA -","2025-03-25","2025-03-25",2500.0,"PIX"],["ANTONIO MILAN FILHO","2025-03-25","2025-03-25",17023.36,"PIX"],["IZIDORO ENTRINGER -","2025-03-26","2025-03-26",8060.02,"PIX"],["VICTOR ANTUNES DE SOUZA","2025-03-27","2025-03-27",9400.0,"PIX"],["GIOVANNA FRIEDRICHS","2025-03-27","2025-03-27",5000.0,"PIX"],["NATALIA PEREIRA SOUZA","2025-03-27","2025-03-27",3700.0,"PIX"],["IEDA LUCIA PERIN MARQUES","2025-03-27","2025-03-27",10000.0,"PIX"],["IEDA LUCIA PERIN MARQUES","2025-03-27","2025-03-27",10000.0,"PIX"],["Jbs S/a","2025-03-27","2025-03-27",1270.75,"PIX"],["DANIEL BARBOZA ROSA -","2025-03-27","2025-03-27",3917.5,"PIX"],["JUVENOR MANOEL FERREIRA","2025-03-28","2025-03-28",4725.0,"PIX"],["JBS SA","2025-03-28","2025-03-28",7153.21,"PIX"],["JBS SA","2025-03-28","2025-03-28",28800.86,"PIX"],["CLARINDO LAZARO GARCIA","2025-03-28","2025-03-28",3700.0,"PIX"],["GUILHERME PINEZZI","2025-03-28","2025-03-28",11122.55,"PIX"],["THAIS MICHELE GOULART E","2025-03-29","2025-03-29",1000.0,"PIX"],["THAIS MICHELE GOULART E","2025-03-29","2025-03-29",3483.5,"PIX"],["THAIS MICHELE GOULART E","2025-03-29","2025-03-29",3483.5,"PIX"],["THAIS MICHELE GOULART E","2025-03-29","2025-03-29",3483.5,"PIX"],["THAIS MICHELE GOULART E","2025-03-29","2025-03-29",1000.0,"PIX"],["THAIS MICHELE GOULART E","2025-03-29","2025-03-29",1000.0,"PIX"],["NELSO MARCON","2025-03-31","2025-03-31",7000.0,"Cheque"],["DORZAIDES GOMES DA","2025-03-31","2025-03-31",4589.27,"PIX"],["JBS SA","2025-03-31","2025-03-31",43638.08,"PIX"],["RUTENBERG","2025-03-31","2025-03-31",7000.0,"PIX"],["RUTENBERG","2025-03-31","2025-03-31",41903.26,"PIX"],["RUTENBERG","2025-03-31","2025-03-31",33000.0,"PIX"],["MARCIO DE ALMEIDA SALLES","2025-03-31","2025-03-31",6032.0,"PIX"],["SIMONE MARCHESI","2025-03-31","2025-03-31",11100.0,"PIX"],["JBS S/A","2025-04-01","2025-04-01",7950.0,"PIX"],["SEBASTIAO EDSON","2025-04-01","2025-04-01",22350.0,"PIX"],["CARLOS MARCON","2025-04-01","2025-04-01",4233.07,"PIX"],["SEBASTIAO EDSON","2025-04-03","2025-04-03",4000.0,"PIX"],["GIOVANNA FRIEDRICHS","2025-04-03","2025-04-03",10609.07,"PIX"],["THAIS MICHELE GOULART E","2025-04-03","2025-04-03",10069.81,"PIX"],["THAIS MICHELE GOULART E","2025-04-04","2025-04-04",4495.87,"PIX"],["JBS SA","2025-04-04","2025-04-04",43230.55,"PIX"],["CLEBER JOSE SILVA E DIAS","2025-04-04","2025-04-04",6980.0,"PIX"],["WENDELL VIEIRA GARCIA","2025-04-04","2025-04-04",1400.0,"PIX"],["MANOEL CARLOS ALVES DA","2025-04-04","2025-04-04",7000.0,"PIX"],["DORIVAL AGULHOM","2025-04-05","2025-04-05",22994.25,"PIX"],["DORIVAL AGULHOM","2025-04-05","2025-04-05",23098.61,"PIX"],["JOSE ALBERTO GIMENEZ","2025-04-05","2025-04-05",2950.0,"PIX"],["JBS S/A","2025-04-05","2025-04-05",6292.0,"PIX"],["JBS S/A","2025-04-05","2025-04-05",13740.0,"PIX"],["SEBASTIAO EDSON","2025-04-05","2025-04-05",23370.53,"PIX"],["JBS SA","2025-04-07","2025-04-07",43679.66,"PIX"],["THAIS MICHELE GOULART E","2025-04-07","2025-04-07",11608.79,"PIX"],["SEBASTIAO EDSON","2025-04-08","2025-04-08",20650.0,"PIX"],["JBS SA","2025-04-08","2025-04-08",21520.52,"PIX"],["Leonardo Schio","2025-04-08","2025-04-08",3886.03,"PIX"],["MANOEL CARLOS ALVES DA","2025-04-08","2025-04-08",3000.0,"PIX"],["MANOEL CARLOS ALVES DA","2025-04-08","2025-04-08",3000.0,"PIX"],["SEBASTIAO EDSON","2025-04-08","2025-04-08",7500.0,"PIX"],["THALISSON JACOBSEN SEIBT","2025-04-09","2025-04-09",6500.0,"PIX"],["JULIO EDUARDO SIMOES E","2025-04-09","2025-04-09",41687.05,"PIX"],["PAULO RODRIGUES DA","2025-04-09","2025-04-09",90000.0,"PIX"],["THAIS MICHELE GOULART E","2025-04-09","2025-04-09",4494.52,"PIX"],["INACIO CAMILO RUARO E","2025-04-10","2025-04-10",3450.0,"PIX"],["JBS S/A","2025-04-10","2025-04-10",12618.99,"PIX"],["FABIO JOSE MARSANGO","2025-04-10","2025-04-10",12280.0,"PIX"],["ANDRE DE MORAES ZUCATO","2025-04-10","2025-04-10",2550.16,"PIX"],["ANDRE DE MORAES ZUCATO","2025-04-10","2025-04-10",3483.23,"PIX"],["FLB AGROPECUARIA LTDA","2025-04-10","2025-04-10",11000.0,"PIX"],["JBS SA","2025-04-11","2025-04-11",42867.74,"PIX"],["SEBASTIAO EDSON","2025-04-11","2025-04-11",11200.0,"PIX"],["ANTONIO CARLOS TURAZZA","2025-04-11","2025-04-11",10368.07,"PIX"],["TIAGO MARGARIDO MOREIRA","2025-04-11","2025-04-11",15865.0,"PIX"],["TIAGO GRANDO E OUTRO-","2025-04-14","2025-04-14",12860.76,"PIX"],["SEBASTIAO EDSON","2025-04-14","2025-04-14",14299.0,"PIX"],["SEBASTIAO EDSON","2025-04-14","2025-04-14",7451.4,"PIX"],["JBS SA","2025-04-14","2025-04-14",43266.19,"PIX"],["VASCO MIL HOMENS","2025-04-14","2025-04-14",5600.0,"PIX"],["SERGIO AMARAL DE","2025-04-14","2025-04-14",4000.0,"PIX"],["MANOEL CARLOS ALVES DA","2025-04-14","2025-04-14",4425.0,"PIX"],["MANOEL CARLOS ALVES DA","2025-04-14","2025-04-14",4425.0,"PIX"],["MANOEL CARLOS ALVES DA","2025-04-14","2025-04-14",4425.0,"PIX"],["SIMONE MARCHESI","2025-04-14","2025-04-14",8400.0,"PIX"],["Roberto Pereira de Almeida","2025-04-15","2025-04-15",9627.64,"PIX"],["Michaelle Leonel Costa","2025-04-15","2025-04-15",11731.74,"PIX"],["FABIO BARBOSA DE","2025-04-15","2025-04-15",13362.9,"PIX"],["EDER DE CARVALHO GODA","2025-04-15","2025-04-15",8069.03,"PIX"],["EDER DE CARVALHO GODA","2025-04-15","2025-04-15",10240.51,"PIX"],["NATALIA PEREIRA SOUZA","2025-04-15","2025-04-15",11100.0,"PIX"],["SEBASTIAO EDSON","2025-04-16","2025-04-16",3000.0,"PIX"],["SERGIO AMARAL DE","2025-04-16","2025-04-16",11705.93,"PIX"],["WAGNER MIRANDA","2025-04-17","2025-04-17",35461.45,"PIX"],["Michaelle Leonel Costa","2025-04-17","2025-04-17",10765.61,"PIX"],["VINICIUS JOAO CURI","2025-04-17","2025-04-17",13500.0,"PIX"],["Roberto Pereira de Almeida","2025-04-17","2025-04-17",3480.35,"PIX"],["TIAGO MARGARIDO MOREIRA","2025-04-17","2025-04-17",8367.65,"PIX"],["TIAGO MARGARIDO MOREIRA","2025-04-17","2025-04-17",7825.0,"PIX"],["NIANE BORGES MOURA","2025-04-22","2025-04-22",3450.0,"PIX"],["DANIEL BARBOZA ROSA -","2025-04-22","2025-04-22",6514.05,"PIX"],["MARCIO RICARDO BUSSOLA","2025-04-22","2025-04-22",19432.0,"PIX"],["AGROTERENAS S.A CANA","2025-04-22","2025-04-22",24001.02,"PIX"],["JBS SA","2025-04-23","2025-04-23",42775.7,"PIX"],["JBS SA","2025-04-23","2025-04-23",42027.89,"PIX"],["GIOVANNA FRIEDRICHS","2025-04-23","2025-04-23",8515.71,"PIX"],["NELSO MARCON","2025-04-24","2025-04-24",25000.0,"PIX"],["TIAGO MARGARIDO MOREIRA","2025-04-24","2025-04-24",8832.35,"PIX"],["INACIO CAMILO RUARO E","2025-04-24","2025-04-24",9900.0,"PIX"],["TRANSPORTES 4 PATAS","2025-04-24","2025-04-24",47273.7,"PIX"],["TRANSPORTES 4 PATAS","2025-04-24","2025-04-24",6543.3,"PIX"],["LUIZ CARLOS MONTEIRO","2025-04-25","2025-04-25",4000.0,"PIX"],["JBS SA","2025-04-25","2025-04-25",42533.81,"PIX"],["SILVIO ATALA JUNQUEIRA","2025-04-25","2025-04-25",4491.83,"PIX"],["VANDERLEY ALVES DA SILVA","2025-04-25","2025-04-25",1400.0,"PIX"],["JBS SA","2025-04-26","2025-04-26",41979.92,"PIX"],["INACIO CAMILO RUARO E","2025-04-28","2025-04-28",7000.0,"PIX"],["Carlos Roberto Barbosa","2025-04-28","2025-04-28",7400.0,"PIX"],["GIOVANNA FRIEDRICHS","2025-04-28","2025-04-28",15017.05,"PIX"],["JOSE ALBERTO GIMENEZ","2025-04-28","2025-04-28",22000.0,"PIX"],["SEBASTIAO EDSON","2025-04-28","2025-04-28",8530.47,"PIX"],["EDER DE CARVALHO GODA","2025-04-28","2025-04-28",9161.39,"PIX"],["THAIS MICHELE GOULART E","2025-04-29","2025-04-29",4425.0,"PIX"],["EDER DE CARVALHO GODA","2025-04-30","2025-04-30",8527.0,"PIX"],["SILVANA G CORTI DI R DI C S","2025-04-30","2025-04-30",8545.77,"PIX"],["WELITON FILHO FREITAS","2025-05-02","2025-04-01",23083.65,"PIX"],["WELITON FILHO FREITAS","2025-05-02","2025-04-14",7589.37,"PIX"],["WELITON FILHO FREITAS","2025-05-02","2025-04-17",3500.0,"PIX"],["Agropecuaria Fazenda Serra","2025-05-02","2025-05-02",12000.0,"PIX"],["GIOVANNA FRIEDRICHS","2025-05-02","2025-05-02",31673.48,"PIX"],["JBS SA","2025-05-02","2025-05-02",41915.73,"PIX"],["JBS SA","2025-05-05","2025-05-05",42288.65,"PIX"],["ANDRE DE MORAES ZUCATO","2025-05-05","2025-05-05",6936.06,"PIX"],["ANDRE DE MORAES ZUCATO","2025-05-05","2025-05-05",5632.42,"PIX"],["LUIZ CARLOS MONTEIRO","2025-05-05","2025-05-05",5224.0,"PIX"],["JOSE ALBERTO GIMENEZ","2025-05-05","2025-05-05",4162.85,"PIX"],["MARCIO RICARDO BUSSOLA","2025-05-05","2025-05-05",19110.0,"PIX"],["MARCIO RICARDO BUSSOLA","2025-05-05","2025-05-05",20384.0,"PIX"],["THAIS MICHELE GOULART E","2025-05-05","2025-05-05",16782.77,"PIX"],["NOVAPEC AGROPECUARIA","2025-05-05","2025-05-05",65250.0,"PIX"],["SELMO DE MELO E SOUZA","2025-05-05","2025-05-05",5230.0,"PIX"],["SEBASTIAO EDSON","2025-05-05","2025-05-05",7330.13,"PIX"],["ADILSON LUIZ","2025-05-05","2025-05-05",2000.0,"PIX"],["ADILSON LUIZ","2025-05-05","2025-05-05",2900.0,"PIX"],["JOAO AUGUSTO FERREIRA","2025-05-06","2025-05-06",3000.0,"PIX"],["SEBASTIAO EDSON","2025-05-06","2025-05-06",19100.0,"PIX"],["SEBASTIAO EDSON","2025-05-06","2025-05-06",4000.0,"PIX"],["GIOVANNA FRIEDRICHS","2025-05-06","2025-05-06",2700.0,"PIX"],["WENDELL VIEIRA GARCIA","2025-05-08","2025-05-08",1399.99,"PIX"],["LUIZ CARLOS MONTEIRO","2025-05-08","2025-05-08",7080.33,"PIX"],["JOSE ALBERTO GIMENEZ","2025-05-08","2025-05-08",3257.85,"PIX"],["Agropecuaria Fazenda Serra","2025-05-08","2025-05-08",7615.09,"PIX"],["Frigorifico Boi Mix Ltda","2025-05-08","2025-05-08",8977.3,"PIX"],["TRANSPORTES 4 PATAS","2025-05-08","2025-05-08",57649.31,"PIX"],["SIMONE MARCHESI","2025-05-08","2025-05-08",3401.25,"PIX"],["GIOVANNA FRIEDRICHS","2025-05-08","2025-05-08",10500.0,"PIX"],["VINICIUS JOAO CURI","2025-05-08","2025-05-08",37381.25,"PIX"],["SERGIO AMARAL DE","2025-05-09","2025-05-09",10165.9,"PIX"],["JBS SA","2025-05-10","2025-05-10",57237.11,"PIX"],["Thiago Silvestre Maggioni","2025-05-12","2025-05-12",45000.0,"PIX"],["MARCIO RICARDO BUSSOLA","2025-05-12","2025-05-12",20384.0,"PIX"],["MARCIO RICARDO BUSSOLA","2025-05-12","2025-05-12",19096.0,"PIX"],["VINICIUS MARIN RAMOS DA","2025-05-12","2025-05-12",51337.5,"PIX"],["JBS SA","2025-05-12","2025-05-12",41858.53,"PIX"],["TIAGO MARGARIDO MOREIRA","2025-05-12","2025-05-12",8232.33,"PIX"],["FELIPE AUGUSTO RIBEIRO","2025-05-12","2025-05-12",13979.59,"PIX"],["BJ LEILOES LTDA","2025-05-12","2025-05-12",17088.08,"PIX"],["HELIO RUGINE - FAZENDA","2025-05-12","2025-05-12",7400.0,"PIX"],["SEBASTIAO EDSON","2025-05-12","2025-05-12",69350.7,"PIX"],["SEBASTIAO EDSON","2025-05-12","2025-05-12",16000.0,"PIX"],["SEBASTIAO EDSON","2025-05-12","2025-05-12",21550.0,"PIX"],["SEBASTIAO EDSON","2025-05-13","2025-05-13",7400.0,"PIX"],["Andre Augusto Sebe Filippo","2025-05-13","2025-05-13",30771.42,"PIX"],["ANDRE DE MORAES ZUCATO","2025-05-14","2025-05-14",7548.5,"PIX"],["ANDRE DE MORAES ZUCATO","2025-05-14","2025-05-14",4053.65,"PIX"],["ANDRE DE MORAES ZUCATO","2025-05-14","2025-05-14",10941.29,"PIX"],["ANDRE DE MORAES ZUCATO","2025-05-14","2025-05-14",1000.0,"PIX"],["JOAO BATISTA DE OLIVEIRA E","2025-05-14","2025-05-14",13482.74,"PIX"],["JOAO BATISTA DE OLIVEIRA E","2025-05-14","2025-05-14",4900.65,"PIX"],["ANTONIO CARLOS TURAZZA","2025-05-14","2025-05-14",11173.5,"PIX"],["GIOVANNA FRIEDRICHS","2025-05-14","2025-05-14",10117.07,"PIX"],["ANDRE DE MORAES ZUCATO","2025-05-15","2025-05-15",3568.83,"PIX"],["JOSE VIDAL DE OLIVEIRA","2025-05-15","2025-05-15",13085.0,"PIX"],["ANTONIO MEDEIROS E","2025-05-15","2025-05-15",8100.0,"PIX"],["SILVANA G CORTI DI R DI C S","2025-05-15","2025-05-15",1700.0,"PIX"],["JBS SA","2025-05-16","2025-05-16",42885.6,"PIX"],["ANDRE DE MORAES ZUCATO","2025-05-16","2025-05-16",150090.04,"PIX"],["ANDRE DE MORAES ZUCATO","2025-05-16","2025-05-16",50369.79,"PIX"],["GIOVANNA FRIEDRICHS","2025-05-19","2025-05-19",8560.6,"PIX"],["Agropecuaria Fazenda Serra","2025-05-19","2025-05-19",8000.0,"PIX"],["SANDRA APARECIDA","2025-05-19","2025-05-19",4827.19,"PIX"],["SEBASTIAO EDSON","2025-05-19","2025-05-19",120451.22,"PIX"],["ANA CLAUDIA BORGES DE","2025-05-19","2025-05-19",73074.01,"PIX"],["ANDRE DE MORAES ZUCATO","2025-05-19","2025-05-19",7920.83,"PIX"],["ANTONIO FRANGE JUNIOR","2025-05-19","2025-05-19",29587.2,"PIX"],["SILVANA G CORTI DI R DI C S","2025-05-19","2025-05-19",20401.32,"PIX"],["MFG AGROPECUARIA LTDA","2025-05-20","2025-04-28",87591.4,"PIX"],["MFG AGROPECUARIA LTDA","2025-05-20","2025-04-29",87591.4,"PIX"],["MFG AGROPECUARIA LTDA","2025-05-20","2025-05-02",60000.0,"PIX"],["JBS SA","2025-05-20","2025-05-20",50796.28,"PIX"],["ATH AGROPECURIARIA LTDA","2025-05-21","2025-05-21",8978.0,"PIX"],["ANDRE DE MORAES ZUCATO","2025-05-22","2025-05-22",147804.08,"PIX"],["WILSON ROMAGNOLI E","2025-05-22","2025-05-22",29304.0,"PIX"],["VINICIUS JOAO CURI","2025-05-22","2025-05-22",29033.66,"PIX"],["ANDRE DE MORAES ZUCATO","2025-05-22","2025-05-22",111917.0,"PIX"],["ANDRE DE MORAES ZUCATO","2025-05-22","2025-05-22",68741.96,"PIX"],["Andre Luis Zanini Sverzut","2025-05-23","2025-05-23",3700.0,"PIX"],["GIOVANNA FRIEDRICHS","2025-05-23","2025-05-23",12595.3,"PIX"],["GABRIELA FABER","2025-05-23","2025-05-23",4000.0,"PIX"],["GABRIELA FABER","2025-05-23","2025-05-23",20000.0,"PIX"],["HELIO RODOLFO","2025-05-23","2025-05-23",5600.0,"PIX"],["VINICIUS JOAO CURI","2025-05-23","2025-05-23",15188.14,"PIX"],["ANDRE DE MORAES ZUCATO","2025-05-23","2025-05-23",5783.69,"PIX"],["ANDRE DE MORAES ZUCATO","2025-05-23","2025-05-23",4055.28,"PIX"],["JBS SA","2025-05-26","2025-05-26",39699.58,"PIX"],["SILVIO DE MELO E SOUZA -","2025-05-26","2025-05-26",3500.0,"PIX"],["JBS SA","2025-05-26","2025-05-26",51299.08,"PIX"],["FLAMBOYANT AGRO","2025-05-26","2025-05-26",3700.0,"PIX"],["RICARDO BEOZZO","2025-05-26","2025-05-26",3450.0,"PIX"],["JOSE ALBERTO GIMENEZ","2025-05-26","2025-05-26",15750.0,"PIX"],["GIOVANNA FRIEDRICHS","2025-05-26","2025-05-26",28231.3,"PIX"],["GIOVANNA FRIEDRICHS","2025-05-28","2025-05-28",7626.5,"PIX"],["ANDRE DE MORAES ZUCATO","2025-05-29","2025-05-29",3484.41,"PIX"],["ANDRE DE MORAES ZUCATO","2025-05-29","2025-05-29",1000.0,"PIX"],["ANDRE DE MORAES ZUCATO","2025-05-29","2025-05-29",5145.33,"PIX"],["ANDRE DE MORAES ZUCATO","2025-05-29","2025-05-29",147734.04,"PIX"],["EDSON CROCHIQUIA FILHO E","2025-05-29","2025-05-29",7000.0,"PIX"],["JAIRO MACHADO CARNEIRO","2025-05-29","2025-05-29",110921.76,"PIX"],["SEBASTIAO EDSON","2025-05-30","2025-05-30",25900.0,"PIX"],["JBS SA","2025-05-30","2025-05-30",43311.79,"PIX"],["ATH AGROPECURIARIA LTDA","2025-05-30","2025-05-30",12000.0,"PIX"],["JAIRO MACHADO CARNEIRO","2025-05-30","2025-05-30",12496.25,"PIX"],["ADILSON LUIZ","2025-05-30","2025-05-30",3000.0,"PIX"],["ADILSON LUIZ","2025-05-30","2025-05-30",17350.0,"PIX"],["JBS SA","2025-05-31","2025-05-31",42618.88,"PIX"],["REONILDO DANIEL PRANTE","2025-06-02","2025-06-02",22400.0,"Boleto"],["WELITON FILHO FREITAS","2025-06-02","2025-06-02",8465.35,"PIX"],["CONFIANCA TRANSPORTES","2025-06-02","2025-05-31",4617.0,"PIX"],["ELIANA APARECIDA DE","2025-06-02","2025-06-02",13906.57,"PIX"],["GIOVANNA FRIEDRICHS","2025-06-02","2025-06-02",9421.1,"PIX"],["THAIS MICHELE GOULART E","2025-06-02","2025-06-02",22483.31,"PIX"],["WENDELL VIEIRA GARCIA","2025-06-02","2025-06-02",6000.0,"PIX"],["SAMUEL ANTONIO","2025-06-02","2025-06-02",6000.0,"PIX"],["WELITON FILHO FREITAS","2025-06-03","2025-06-03",10534.65,"PIX"],["SEBASTIAO EDSON","2025-06-05","2025-06-05",2629.98,"PIX"],["JBS S/A","2025-06-05","2025-06-05",55055.0,"PIX"],["JBS S/A","2025-06-05","2025-06-05",20391.8,"PIX"],["JBS S/A","2025-06-05","2025-06-05",40783.6,"PIX"],["Agropecuaria Fazenda Serra","2025-06-06","2025-06-06",7500.0,"PIX"],["JBS S/A","2025-06-07","2025-06-07",11011.0,"PIX"],["JBS SA","2025-06-07","2025-06-07",69144.92,"PIX"],["ADEMILSON BENEDITO","2025-06-09","2025-06-09",26629.2,"PIX"],["JOSE VIDAL DE OLIVEIRA","2025-06-09","2025-06-09",14013.41,"PIX"],["JOSE VIDAL DE OLIVEIRA","2025-06-09","2025-06-09",3146.59,"PIX"],["THAIS MICHELE GOULART E","2025-06-09","2025-06-09",5210.47,"PIX"],["CLARINDO LAZARO GARCIA","2025-06-09","2025-06-09",3700.0,"PIX"],["MFG AGROPECUARIA LTDA","2025-06-10","2025-04-23",13023.66,"PIX"],["MFG AGROPECUARIA LTDA","2025-06-10","2025-04-28",12730.2,"PIX"],["MFG AGROPECUARIA LTDA","2025-06-10","2025-04-29",18131.88,"PIX"],["MFG AGROPECUARIA LTDA","2025-06-10","2025-04-30",6043.96,"PIX"],["MFG AGROPECUARIA LTDA","2025-06-10","2025-05-02",31503.1,"PIX"],["JBS SA","2025-06-10","2025-06-10",6834.06,"PIX"],["ANDRE DE MORAES ZUCATO","2025-06-10","2025-06-10",148821.92,"PIX"],["ANDRE DE MORAES ZUCATO","2025-06-10","2025-06-10",8805.44,"PIX"],["IRIO DONIZETI CORDEIRO","2025-06-10","2025-06-10",16000.0,"PIX"],["VICTOR ANTUNES DE SOUZA","2025-06-11","2025-06-11",7667.82,"PIX"],["MARCELO CAETANO DINES","2025-06-11","2025-06-11",14800.0,"PIX"],["ANDRE LUIZ ZANDONA","2025-06-11","2025-06-11",14096.0,"PIX"],["MARIA TEREZA VILELA","2025-06-11","2025-06-11",18036.56,"PIX"],["ANDRE DE MORAES ZUCATO","2025-06-12","2025-06-12",3764.97,"PIX"],["ANDRE DE MORAES ZUCATO","2025-06-12","2025-06-12",23744.4,"PIX"],["ANDRE DE MORAES ZUCATO","2025-06-12","2025-06-12",3415.78,"PIX"],["REONILDO DANIEL PRANTE","2025-06-12","2025-06-12",11800.0,"PIX"],["SEBASTIAO EDSON","2025-06-12","2025-06-12",4900.0,"PIX"],["VASCO MIL HOMENS","2025-06-12","2025-06-12",1400.0,"PIX"],["NIANE BORGES MOURA","2025-06-12","2025-06-12",2600.0,"PIX"],["SERGIO EDUARDO MARCON","2025-06-14","2025-06-14",7350.0,"PIX"],["LEANDRO PINTO DA SILVA E","2025-06-16","2025-06-16",41400.0,"PIX"],["ADEMILSON BENEDITO","2025-06-16","2025-06-16",7500.0,"PIX"],["Andre Luis Zanini Sverzut","2025-06-16","2025-06-16",6671.25,"PIX"],["AGROPECUARIA AGUA VIVA","2025-06-16","2025-06-16",4533.5,"PIX"],["AGROPECUARIA AGUA VIVA","2025-06-16","2025-06-16",2000.0,"PIX"],["AGROPECUARIA AGUA VIVA","2025-06-16","2025-06-16",2000.0,"PIX"],["AGROPECUARIA AGUA VIVA","2025-06-16","2025-06-16",2000.0,"PIX"],["AGROPECUARIA AGUA VIVA","2025-06-16","2025-06-16",17804.42,"PIX"],["SEBASTIAO EDSON","2025-06-16","2025-06-16",18769.76,"PIX"],["ANTONIO CARLOS BISPO DE","2025-06-16","2025-06-16",7905.0,"PIX"],["ADILSON LUIZ","2025-06-16","2025-06-16",5550.0,"PIX"],["ADILSON LUIZ","2025-06-16","2025-06-16",3950.0,"PIX"],["ANDRESSA ROBERTA","2025-06-16","2025-06-16",14283.87,"PIX"],["NOVA AGRO AGROPECUARIA","2025-06-16","2025-06-16",9734.0,"PIX"],["SEBASTIAO JOSE DOS","2025-06-16","2025-06-16",758.76,"PIX"],["MARIA CRISTINA MARTINS","2025-06-16","2025-06-16",10109.69,"PIX"],["REONILDO DANIEL PRANTE","2025-06-16","2025-06-16",4000.0,"PIX"],["DANIEL BARBOZA ROSA -","2025-06-17","2025-06-17",7570.0,"PIX"],["FAZ BARRA DO DIAMANTINO","2025-06-17","2025-06-17",5999.74,"PIX"],["CHOU HSIU I E OUTROS","2025-06-17","2025-06-17",5465.0,"PIX"],["JOSE ALBERTO GIMENEZ","2025-06-17","2025-06-17",11632.5,"PIX"],["BOM JESUS AGROPECUARIA","2025-06-17","2025-06-17",2117.5,"PIX"],["BOM JESUS AGROPECUARIA","2025-06-17","2025-06-17",2117.5,"PIX"],["AGROPECUARIA AGUA VIVA","2025-06-17","2025-06-17",3951.39,"PIX"],["ANDRE DE MORAES ZUCATO","2025-06-17","2025-06-17",16225.53,"PIX"],["ANDRE DE MORAES ZUCATO","2025-06-17","2025-06-17",11215.08,"PIX"],["REONILDO DANIEL PRANTE","2025-06-17","2025-06-17",40600.0,"PIX"],["JBS SA","2025-06-17","2025-06-17",34302.44,"PIX"],["JBS SA","2025-06-17","2025-06-17",34159.84,"PIX"],["SEBASTIAO EDSON","2025-06-18","2025-06-18",6400.0,"PIX"],["MFG AGROPECUARIA LTDA","2025-06-20","2025-06-20",28839.2,"PIX"],["ANDRE DE MORAES ZUCATO","2025-06-20","2025-06-20",6980.0,"PIX"],["Joao Bosco de Rezende","2025-06-20","2025-06-20",3640.0,"PIX"],["Joao Bosco de Rezende","2025-06-20","2025-06-20",5000.0,"PIX"],["SEBASTIAO EDSON","2025-06-23","2025-06-23",22738.08,"PIX"],["TECOHA AGROPECUARIA E","2025-06-23","2025-06-23",32404.0,"PIX"],["JOSE VIDAL DE OLIVEIRA","2025-06-23","2025-06-23",7020.0,"PIX"],["REONILDO DANIEL PRANTE","2025-06-23","2025-06-23",21962.81,"PIX"],["REONILDO DANIEL PRANTE","2025-06-23","2025-06-23",2247.06,"PIX"],["REONILDO DANIEL PRANTE","2025-06-23","2025-06-23",4000.0,"PIX"],["REONILDO DANIEL PRANTE","2025-06-23","2025-06-23",7100.0,"PIX"],["REONILDO DANIEL PRANTE","2025-06-23","2025-06-23",900.0,"PIX"],["REONILDO DANIEL PRANTE","2025-06-23","2025-06-23",500.0,"PIX"],["AGROTERENAS S.A CANA","2025-06-23","2025-06-23",11992.42,"PIX"],["FLAMBOYANT AGRO","2025-06-23","2025-06-23",7400.0,"PIX"],["GIOVANNA FRIEDRICHS","2025-06-24","2025-06-24",12917.94,"PIX"],["EDUARDO MUSA DE FREITAS","2025-06-24","2025-06-24",10800.0,"PIX"],["ANDRE DE MORAES ZUCATO","2025-06-24","2025-06-24",46794.48,"PIX"],["ANDRE DE MORAES ZUCATO","2025-06-24","2025-06-24",67330.32,"PIX"],["SILVANA G CORTI DI R DI C S","2025-06-24","2025-06-24",1000.0,"PIX"],["VINICIUS JOAO CURI","2025-06-24","2025-06-24",5047.5,"PIX"],["JAIRO MACHADO CARNEIRO","2025-06-24","2025-06-24",55460.88,"PIX"],["TITO ELIAS BERNI E OUTRO","2025-06-24","2025-06-24",16619.04,"PIX"],["SILVANA G CORTI DI R DI C S","2025-06-24","2025-06-24",34894.33,"PIX"],["REONILDO DANIEL PRANTE","2025-06-24","2025-06-24",2746.25,"PIX"],["JOSE VIDAL DE OLIVEIRA","2025-06-25","2025-06-25",3700.0,"PIX"],["ANA LUCIA CORDESCHI","2025-06-25","2025-06-25",19229.96,"PIX"],["SIMONE MARCHESI","2025-06-25","2025-06-25",8735.0,"PIX"],["ADEMILSON BENEDITO","2025-06-25","2025-06-25",8878.5,"PIX"],["EDER DE CARVALHO GODA","2025-06-25","2025-06-25",15300.88,"PIX"],["JBS SA","2025-06-26","2025-06-26",40258.3,"PIX"],["JBS SA","2025-06-26","2025-06-26",26838.86,"PIX"],["ANDRE DE MORAES ZUCATO","2025-06-26","2025-06-26",8446.92,"PIX"],["ANDRE DE MORAES ZUCATO","2025-06-26","2025-06-26",17547.93,"PIX"],["ANDRE DE MORAES ZUCATO","2025-06-26","2025-06-26",13581.42,"PIX"],["JBS SA","2025-06-26","2025-06-26",12096.36,"PIX"],["CLAUDINEI PASSERINI","2025-06-27","2025-06-27",4393.36,"PIX"],["SINVAL CAETANO ROSA -","2025-06-27","2025-06-27",3446.0,"PIX"],["JOSE CARLOS DUARTE DA","2025-06-27","2025-06-27",8123.81,"PIX"],["TITO ELIAS BERNI E OUTRO","2025-06-27","2025-06-27",12415.0,"PIX"],["FAZENDA JM LTDA","2025-06-27","2025-06-27",3600.0,"PIX"],["ANDRE DE MORAES ZUCATO","2025-06-27","2025-06-27",6514.43,"PIX"],["FLAMBOYANT AGRO","2025-06-28","2025-06-28",3700.0,"PIX"],["VINICIUS JOAO CURI","2025-06-28","2025-06-28",13632.74,"PIX"],["VINICIUS JOAO CURI","2025-06-28","2025-06-28",10173.15,"PIX"],["JBS SA","2025-06-30","2025-06-30",26784.32,"PIX"],["JBS SA","2025-06-30","2025-06-30",27278.28,"PIX"],["FAZENDA JM LTDA","2025-06-30","2025-06-30",3500.0,"PIX"],["MARCELO CAETANO DINES","2025-06-30","2025-06-30",5400.0,"PIX"],["JBS S/A","2025-06-30","2025-06-30",8039.01,"PIX"],["RICARDO PEREIRA DE BRITO","2025-06-30","2025-06-30",13000.0,"PIX"],["JOSE VIDAL DE OLIVEIRA","2025-07-01","2025-07-01",10590.0,"PIX"],["JOSE ALBERTO GIMENEZ","2025-07-01","2025-07-01",175419.0,"PIX"],["JOSE ALBERTO GIMENEZ","2025-07-01","2025-07-01",3662.56,"PIX"],["ANA LUCIA LOPES GIROLDO","2025-07-01","2025-07-01",28830.64,"PIX"],["ANA LUCIA LOPES GIROLDO","2025-07-01","2025-07-01",20000.0,"PIX"],["GUILHERME ONGARATTO","2025-07-01","2025-07-01",66446.23,"PIX"],["ALEXANDRE RONDON","2025-07-01","2025-07-01",35380.03,"PIX"],["FLAVIA RAUCCI FACCHINI -","2025-07-01","2025-07-01",200.0,"PIX"],["FLAVIA RAUCCI FACCHINI -","2025-07-01","2025-07-01",10000.0,"PIX"],["FLAVIA RAUCCI FACCHINI -","2025-07-01","2025-07-01",5000.0,"PIX"],["MFG AGROPECUARIA LTDA","2025-07-01","2025-07-01",11090.82,"PIX"],["JBS SA","2025-07-02","2025-07-02",6493.13,"PIX"],["JOSE VIDAL DE OLIVEIRA","2025-07-02","2025-07-02",7024.0,"PIX"],["THAIS MICHELE GOULART E","2025-07-02","2025-07-02",6434.37,"PIX"],["Agropecuaria Fazenda Serra","2025-07-02","2025-07-02",6698.34,"PIX"],["SEBASTIAO EDSON","2025-07-02","2025-07-02",10450.0,"PIX"],["SEBASTIAO EDSON","2025-07-02","2025-07-02",9146.05,"PIX"],["SERGIO AMARAL DE","2025-07-02","2025-07-02",8581.75,"PIX"],["JBS SA","2025-07-02","2025-07-02",23600.11,"PIX"],["REONILDO DANIEL PRANTE","2025-07-02","2025-07-02",1937.93,"PIX"],["REONILDO DANIEL PRANTE","2025-07-02","2025-07-02",3850.0,"PIX"],["ANDRE DE MORAES ZUCATO","2025-07-03","2025-07-03",7560.62,"PIX"],["ANDRE DE MORAES ZUCATO","2025-07-03","2025-07-03",11303.02,"PIX"],["ANDRE DE MORAES ZUCATO","2025-07-03","2025-07-03",11083.1,"PIX"],["ANDRE DE MORAES ZUCATO","2025-07-03","2025-07-03",2758.03,"PIX"],["SEBASTIAO EDSON","2025-07-03","2025-07-03",10350.0,"PIX"],["MARCIO RICARDO BUSSOLA","2025-07-03","2025-07-03",19628.0,"PIX"],["DANIEL BARBOZA ROSA -","2025-07-03","2025-07-03",5550.0,"PIX"],["CARLOS ALBERTO MOREIRA","2025-07-03","2025-07-03",12150.0,"PIX"],["THAIS MICHELE GOULART E","2025-07-05","2025-07-05",11617.8,"PIX"],["SEBASTIAO EDSON","2025-07-05","2025-07-05",15150.0,"PIX"],["SEBASTIAO EDSON","2025-07-07","2025-07-07",14700.0,"PIX"],["JBS SA","2025-07-08","2025-07-08",21864.83,"PIX"],["JBS SA","2025-07-08","2025-07-08",22612.66,"PIX"],["ANDRE DE MORAES ZUCATO","2025-07-08","2025-07-08",3521.51,"PIX"],["ANDRE DE MORAES ZUCATO","2025-07-08","2025-07-08",7606.76,"PIX"],["ANDRE DE MORAES ZUCATO","2025-07-08","2025-07-08",14506.95,"PIX"],["ANDRE DE MORAES ZUCATO","2025-07-08","2025-07-08",6145.85,"PIX"],["ANDRE DE MORAES ZUCATO","2025-07-08","2025-07-08",9671.63,"PIX"],["JULIO ANTONIO VASSOLER","2025-07-08","2025-07-08",10194.08,"PIX"],["Joao Carlos Teixeira Posses","2025-07-08","2025-07-08",18946.86,"PIX"],["MOACYR FREGONESI","2025-07-08","2025-07-08",36432.2,"PIX"],["MOACYR FREGONESI","2025-07-08","2025-07-08",36423.2,"PIX"],["GUILHERME PINEZZI","2025-07-08","2025-07-08",25524.7,"PIX"],["SAMUEL ANTONIO","2025-07-08","2025-07-08",4900.0,"PIX"],["RAPHAEL COSTA MOTTA","2025-07-08","2025-07-08",5315.92,"PIX"],["ADILSON LUIZ","2025-07-08","2025-07-08",4000.0,"PIX"],["ADILSON LUIZ","2025-07-08","2025-07-08",10000.0,"PIX"],["MARCIO RICARDO BUSSOLA","2025-07-08","2025-07-08",19880.0,"PIX"],["GABRIELA FABER","2025-07-09","2025-07-09",4000.0,"PIX"],["INACIO CAMILO RUARO E","2025-07-10","2025-07-10",10196.0,"PIX"],["VINICIUS JOAO CURI","2025-07-10","2025-07-10",8912.5,"PIX"],["REONILDO DANIEL PRANTE","2025-07-10","2025-07-10",15135.86,"PIX"],["JBS S/A","2025-07-10","2025-07-10",50312.48,"PIX"],["SERGIO EDUARDO MARCON","2025-07-10","2025-07-10",6900.0,"PIX"],["JOSE LUIS MORODIN -","2025-07-10","2025-07-10",5400.0,"PIX"],["FLAMBOYANT AGRO","2025-07-10","2025-07-10",3700.0,"PIX"],["JBS S/A","2025-07-10","2025-07-10",794.48,"PIX"],["JBS S/A","2025-07-10","2025-07-10",16669.86,"PIX"],["JBS S/A","2025-07-10","2025-07-10",19091.79,"PIX"],["SELMO DE MELO E SOUZA","2025-07-11","2025-07-11",8581.75,"PIX"],["SELMO DE MELO E SOUZA","2025-07-11","2025-07-11",8581.75,"PIX"],["SEBASTIAO EDSON","2025-07-11","2025-07-11",30300.0,"PIX"],["JBS SA","2025-07-11","2025-07-11",24529.78,"PIX"],["JBS SA","2025-07-11","2025-07-11",27327.77,"PIX"],["WALTER GRACINDO","2025-07-11","2025-07-11",12000.0,"PIX"],["ADRIANA APARECIDA DE","2025-07-11","2025-07-11",19000.0,"PIX"],["JBS CONFINAMENTO LTDA","2025-07-11","2025-07-11",8500.0,"PIX"],["JBS SA","2025-07-14","2025-07-14",27314.79,"PIX"],["JBS SA","2025-07-14","2025-07-14",13446.25,"PIX"],["JBS S/A","2025-07-14","2025-07-14",8140.0,"PIX"],["VASCO MIL HOMENS","2025-07-14","2025-07-14",7000.0,"PIX"],["AGROPECUARIA AGUA VIVA","2025-07-14","2025-07-14",10386.63,"PIX"],["SEBASTIAO EDSON","2025-07-15","2025-07-15",14900.0,"PIX"],["MARCIO BARBOSA DE","2025-07-15","2025-07-15",2000.37,"PIX"],["MARCIO BARBOSA DE","2025-07-15","2025-07-15",3265.0,"PIX"],["MARCIO BARBOSA DE","2025-07-15","2025-07-15",235.0,"PIX"],["JOSILENE GALBIATTI MIRA","2025-07-15","2025-07-15",4440.0,"PIX"],["Agropecuaria Fazenda Serra","2025-07-15","2025-07-15",5755.45,"PIX"],["LUIS RICARDO ROCHA","2025-07-15","2025-07-15",8254.33,"PIX"],["RICARDO ROMERO PIRES E","2025-07-15","2025-07-15",28654.66,"PIX"],["GABRIEL GANDOLFI DUTRA","2025-07-16","2025-07-16",2400.0,"PIX"],["SEBASTIAO EDSON","2025-07-16","2025-07-16",12000.0,"PIX"],["JBS SA","2025-07-16","2025-07-16",4894.32,"PIX"],["SIRLENE DIAS DA SILVA","2025-07-16","2025-07-16",23500.0,"PIX"],["ALEXANDRE RONDON","2025-07-16","2025-06-30",6528.8,"PIX"],["ALEXANDRE RONDON","2025-07-16","2025-06-30",4459.11,"PIX"],["ANDRE DE MORAES ZUCATO","2025-07-17","2025-07-17",11621.7,"PIX"],["ANDRE DE MORAES ZUCATO","2025-07-17","2025-07-17",3522.0,"PIX"],["ANDRE DE MORAES ZUCATO","2025-07-17","2025-07-17",4836.64,"PIX"],["ANDRE DE MORAES ZUCATO","2025-07-17","2025-07-17",3806.0,"PIX"],["RODOLFO ABUD CABRERA","2025-07-17","2025-07-17",6425.32,"PIX"],["JBS SA","2025-07-17","2025-07-17",4894.06,"PIX"],["CARLOS ALBERTO BUSSOLA","2025-07-17","2025-07-17",19866.0,"PIX"],["FLAMBOYANT AGRO","2025-07-17","2025-07-17",3700.0,"PIX"],["SERGIO EDUARDO MARCON","2025-07-17","2025-07-17",5900.0,"PIX"],["JBS S/A","2025-07-17","2025-07-17",5118.52,"PIX"],["VINICIUS JOAO CURI","2025-07-17","2025-07-17",4000.0,"PIX"],["MYLA LOPES ECKSTEIN E","2025-07-18","2025-07-18",4565.05,"PIX"],["JBS S/A","2025-07-18","2025-07-18",10174.3,"PIX"],["MFG AGROPECUARIA LTDA","2025-07-18","2025-07-18",22438.85,"PIX"],["CAMILA CRISTINE MARCON","2025-07-18","2025-07-18",16065.0,"PIX"],["SEBASTIAO EDSON","2025-07-18","2025-07-18",10850.0,"PIX"],["JOSE VIDAL DE OLIVEIRA","2025-07-21","2025-07-21",13906.0,"PIX"],["EDER DE CARVALHO GODA","2025-07-21","2025-07-21",29005.57,"PIX"],["ATTO AGRICOLA LTDA","2025-07-21","2025-07-21",7532.0,"PIX"],["ATTO AGRICOLA LTDA","2025-07-21","2025-07-21",15708.0,"PIX"],["ADEMILSON BENEDITO","2025-07-21","2025-07-21",3959.2,"PIX"],["GAGLIARDI REIS","2025-07-21","2025-07-21",48345.22,"PIX"],["RAPHAEL COSTA MOTTA","2025-07-22","2025-07-22",18609.0,"PIX"],["MFG AGROPECUARIA LTDA","2025-07-22","2025-07-22",16306.42,"PIX"],["MFG AGROPECUARIA LTDA","2025-07-22","2025-07-22",6902.96,"PIX"],["MFG AGROPECUARIA LTDA","2025-07-22","2025-07-22",4187.86,"PIX"],["MFG AGROPECUARIA LTDA","2025-07-22","2025-07-22",11100.0,"PIX"],["JBS S/A","2025-07-22","2025-07-22",29547.59,"PIX"],["JBS S/A","2025-07-22","2025-07-22",2220.21,"PIX"],["JBS SA","2025-07-23","2025-07-23",33620.75,"PIX"],["JOAO VITOR LOPES DE","2025-07-23","2025-07-23",19440.0,"PIX"],["MARCIO BARBOSA DE","2025-07-23","2025-07-23",5500.37,"PIX"],["JAIRO MACHADO CARNEIRO","2025-07-23","2025-07-23",83217.9,"PIX"],["ANDRE DE MORAES ZUCATO","2025-07-23","2025-07-23",45564.0,"PIX"],["ANDRE DE MORAES ZUCATO","2025-07-23","2025-07-23",28438.2,"PIX"],["CARLOS ALBERTO MOREIRA","2025-07-23","2025-07-23",15360.0,"PIX"],["JBS SA","2025-07-24","2025-07-24",56537.32,"PIX"],["JBS S/A","2025-07-24","2025-07-24",17132.18,"PIX"],["RICARDO PEREIRA DE BRITO","2025-07-25","2025-07-25",4300.0,"PIX"],["SIRLENE DIAS DA SILVA","2025-07-25","2025-07-25",12327.51,"PIX"],["ADEMILSON BENEDITO","2025-07-25","2025-07-25",24681.5,"PIX"],["VINICIUS JOAO CURI","2025-07-25","2025-07-25",23759.11,"PIX"],["SEBASTIAO EDSON","2025-07-25","2025-07-25",7400.0,"PIX"],["JBS SA","2025-07-25","2025-07-25",5657.22,"PIX"],["JBS SA","2025-07-28","2025-07-28",47621.34,"PIX"],["SEBASTIAO EDSON","2025-07-29","2025-07-29",3450.0,"PIX"],["JBS SA","2025-07-29","2025-07-29",3817.61,"PIX"],["SEBASTIAO EDSON","2025-07-29","2025-07-29",2850.38,"PIX"],["SEBASTIAO EDSON","2025-07-29","2025-07-29",11400.0,"PIX"],["WELINGTON BRASIL","2025-07-29","2025-07-29",8658.42,"PIX"],["ANDRE DE MORAES ZUCATO","2025-07-29","2025-07-29",104634.86,"PIX"],["ANDRE DE MORAES ZUCATO","2025-07-29","2025-07-29",8658.42,"PIX"],["ANA LUCIA LOPES GIROLDO","2025-07-30","2025-07-30",18683.92,"PIX"],["JBS SA","2025-07-30","2025-07-30",22873.03,"PIX"],["GABRIELA FABER","2025-07-30","2025-07-30",10000.0,"PIX"],["VINICIUS JOAO CURI","2025-07-30","2025-07-30",22922.12,"PIX"],["COLPAR PARTICIPACOES S/A","2025-07-30","2025-07-30",2800.0,"PIX"],["COLPAR PARTICIPACOES S/A","2025-07-30","2025-07-30",3800.0,"PIX"],["JBS S/A","2025-07-31","2025-07-31",4560.13,"PIX"],["JBS S/A","2025-07-31","2025-07-31",22220.06,"PIX"],["JBS S/A","2025-07-31","2025-07-31",18941.92,"PIX"],["JBS S/A","2025-07-31","2025-07-31",6321.96,"PIX"],["JBS S/A","2025-07-31","2025-07-31",6557.6,"PIX"],["SAMUEL ANTONIO","2025-07-31","2025-07-31",3637.5,"PIX"],["NELSO MARCON","2025-08-01","2025-08-01",64260.0,"PIX"],["JBS SA","2025-08-01","2025-08-01",18698.18,"PIX"],["MARCO ANTONIO BINDILATTI","2025-08-01","2025-08-01",15399.2,"PIX"],["SEBASTIAO EDSON","2025-08-01","2025-08-01",2950.0,"PIX"],["SEBASTIAO EDSON","2025-08-01","2025-08-01",12000.0,"PIX"],["SERGIO AMARAL DE","2025-08-01","2025-08-01",36046.95,"PIX"],["ALEXANDRE RONDON","2025-08-02","2025-08-02",12558.0,"PIX"],["JBS SA","2025-08-04","2025-08-04",46935.29,"PIX"],["JBS SA","2025-08-04","2025-08-04",11046.52,"PIX"],["SIMONE MARCHESI","2025-08-04","2025-08-04",5286.62,"PIX"],["COMPANHIA AGROPECUARIA","2025-08-04","2025-08-04",16007.73,"PIX"],["ATH AGROPECURIARIA LTDA","2025-08-04","2025-08-04",10300.0,"PIX"],["SUELI MARCON","2025-08-04","2025-08-04",8800.0,"PIX"],["WELITON FILHO FREITAS","2025-08-04","2025-08-04",17664.0,"PIX"],["ANDRE DE MORAES ZUCATO","2025-08-05","2025-08-05",5552.94,"PIX"],["EDER DE CARVALHO GODA","2025-08-05","2025-08-05",26309.15,"PIX"],["GUILHERME PINEZZI","2025-08-05","2025-08-05",13500.0,"PIX"],["GUILHERME PINEZZI","2025-08-05","2025-08-05",11853.75,"PIX"],["GAGLIARDI REIS","2025-08-06","2025-08-06",36085.45,"PIX"],["JBS S/A","2025-08-06","2025-08-06",12068.78,"PIX"],["JBS S/A","2025-08-06","2025-08-06",5554.73,"PIX"],["JBS S/A","2025-08-06","2025-08-06",4195.77,"PIX"],["JBS S/A","2025-08-06","2025-08-06",2903.54,"PIX"],["ATTO AGRICOLA LTDA","2025-08-06","2025-08-06",64032.0,"PIX"],["SERGIO AMARAL DE","2025-08-06","2025-08-06",20267.85,"PIX"],["RODOLFO ABUD CABRERA","2025-08-07","2025-07-17",6425.33,"PIX"],["CARLOS ALBERTO DE","2025-08-07","2025-08-07",37079.97,"PIX"],["JBS SA","2025-08-07","2025-08-07",27989.33,"PIX"],["JBS S/A","2025-08-08","2025-08-08",875.44,"PIX"],["JBS SA","2025-08-08","2025-08-08",27992.87,"PIX"],["SEBASTIAO EDSON","2025-08-09","2025-08-09",4000.0,"PIX"],["JBS S/A","2025-08-11","2025-08-11",3015.34,"PIX"],["JBS S/A","2025-08-11","2025-08-11",13893.29,"PIX"],["JBS S/A","2025-08-11","2025-08-11",4581.2,"PIX"],["SIRLENE DIAS DA SILVA","2025-08-11","2025-08-11",11381.53,"PIX"],["GUILHERME PINEZZI","2025-08-11","2025-08-11",11853.75,"PIX"],["FLAMBOYANT AGRO","2025-08-11","2025-08-11",3700.0,"PIX"],["RICARDO ROMERO PIRES E","2025-08-11","2025-08-11",8030.53,"PIX"],["MARIUSA DE JESUS GUIMARO","2025-08-11","2025-08-11",15444.73,"PIX"],["ANDRE DE MORAES ZUCATO","2025-08-12","2025-08-12",181862.35,"PIX"],["ANDRE DE MORAES ZUCATO","2025-08-12","2025-08-12",41900.64,"PIX"],["ANDRE DE MORAES ZUCATO","2025-08-12","2025-08-12",5932.45,"PIX"],["JOSE CARLOS DUARTE DA","2025-08-12","2025-08-12",15001.34,"PIX"],["JBS S/A","2025-08-12","2025-08-12",7752.4,"PIX"],["JBS S/A","2025-08-12","2025-08-12",11209.93,"PIX"],["JBS S/A","2025-08-12","2025-08-12",2434.77,"PIX"],["JBS S/A","2025-08-12","2025-08-12",4470.26,"PIX"],["JBS S/A","2025-08-13","2025-08-13",1648.26,"PIX"],["ALEXANDRE RONDON","2025-08-13","2025-08-13",11961.0,"PIX"],["GUILHERME PINEZZI","2025-08-13","2025-08-13",12578.75,"PIX"],["JBS S/A","2025-08-13","2025-08-13",2600.0,"PIX"],["JOSE ALBERTO GIMENEZ","2025-08-14","2025-08-14",7485.11,"PIX"],["Agropecuaria Fazenda Serra","2025-08-14","2025-08-14",2950.0,"PIX"],["SILVANA G CORTI DI R DI C S","2025-08-14","2025-08-14",17862.66,"PIX"],["TRANSPORTES 4 PATAS","2025-08-14","2025-08-14",16899.0,"PIX"],["ATTO AGRICOLA LTDA","2025-08-14","2025-08-14",34225.1,"PIX"],["JBS SA","2025-08-15","2025-08-15",6325.07,"PIX"],["EDUARDO MUSA DE FREITAS","2025-08-15","2025-08-15",2450.0,"PIX"],["FAZENDA JM LTDA","2025-08-15","2025-08-15",32410.0,"PIX"],["SELMO DE MELO E SOUZA","2025-08-18","2025-08-18",9600.0,"PIX"],["JBS S/A","2025-08-18","2025-08-18",1260.98,"PIX"],["JBS S/A","2025-08-18","2025-08-18",1877.99,"PIX"],["TIAGO GRANDO E OUTRO-","2025-08-18","2025-08-18",11891.99,"PIX"],["JBS SA","2025-08-18","2025-08-18",18667.62,"PIX"],["JBS SA","2025-08-18","2025-08-18",3504.42,"PIX"],["JBS SA","2025-08-18","2025-08-18",30078.39,"PIX"],["MARCIO RICARDO BUSSOLA","2025-08-18","2025-08-18",18606.0,"PIX"],["MARCELO CAETANO DINES","2025-08-18","2025-08-18",20700.0,"PIX"],["RICARDO PERNAMBUCO","2025-08-18","2025-08-18",19662.19,"PIX"],["MANOEL CARLOS ALVES DA","2025-08-19","2025-08-19",27600.0,"PIX"],["JBS S/A","2025-08-19","2025-08-19",14155.59,"PIX"],["JBS S/A","2025-08-19","2025-08-19",23648.4,"PIX"],["JBS S/A","2025-08-19","2025-08-19",1522.31,"PIX"],["RAFAEL GUSTINELLI","2025-08-19","2025-08-19",2000.0,"PIX"],["RAFAEL GUSTINELLI","2025-08-19","2025-08-19",8500.87,"PIX"],["RAFAEL GUSTINELLI","2025-08-19","2025-08-19",8500.87,"PIX"],["RAFAEL GUSTINELLI","2025-08-19","2025-08-19",2000.0,"PIX"],["JBS S/A","2025-08-19","2025-08-19",3443.62,"PIX"],["JBS S/A","2025-08-19","2025-08-19",6997.57,"PIX"],["JBS S/A","2025-08-19","2025-08-19",4468.7,"PIX"],["JBS S/A","2025-08-19","2025-08-19",8586.43,"PIX"],["ANDRE DE MORAES ZUCATO","2025-08-19","2025-08-19",161798.35,"PIX"],["INACIO CAMILO RUARO E","2025-08-20","2025-08-20",31137.32,"PIX"],["GUILHERME PINEZZI","2025-08-20","2025-08-20",11853.75,"PIX"],["GABRIELA FABER","2025-08-20","2025-08-20",3500.0,"PIX"],["JBS S/A","2025-08-21","2025-08-21",2818.25,"PIX"],["ANDRE DE MORAES ZUCATO","2025-08-21","2025-08-21",4449.04,"PIX"],["ANDRE DE MORAES ZUCATO","2025-08-21","2025-08-21",4031.27,"PIX"],["CLELIO CESAR DE ALMEIA","2025-08-21","2025-08-21",3943.37,"PIX"],["ANDRE DE MORAES ZUCATO","2025-08-21","2025-08-21",6799.34,"PIX"],["ANDRESSA ROBERTA","2025-08-21","2025-08-21",8793.12,"PIX"],["RUTENBERG ALBUQUERQUE","2025-08-21","2025-08-21",32116.95,"PIX"],["LUIZ CARLOS GOLONI/MARIA","2025-08-21","2025-08-21",11049.24,"PIX"],["GAGLIARDI REIS","2025-08-22","2025-08-22",46880.0,"PIX"],["JBS S/A","2025-08-22","2025-08-22",2830.33,"PIX"],["IVANDRO BARCHET","2025-08-22","2025-08-22",4379.0,"PIX"],["ANDRE DE MORAES ZUCATO","2025-08-22","2025-08-22",212404.62,"PIX"],["ANDRE DE MORAES ZUCATO","2025-08-22","2025-08-22",7913.48,"PIX"],["JBS S/A","2025-08-23","2025-08-23",3375.19,"PIX"],["VALDECIR ALBERTO","2025-08-23","2025-08-23",3600.0,"PIX"],["MARCIO RICARDO BUSSOLA","2025-08-25","2025-08-25",19754.0,"PIX"],["JBS SA","2025-08-25","2025-08-25",44310.44,"PIX"],["JBS SA","2025-08-25","2025-08-25",9241.78,"PIX"],["JBS S/A","2025-08-25","2025-08-25",7919.87,"PIX"],["FLAMBOYANT AGRO","2025-08-25","2025-08-25",11100.0,"PIX"],["AFB AGROPECUARIA","2025-08-25","2025-08-25",10800.0,"PIX"],["JOSE VIDAL DE OLIVEIRA","2025-08-25","2025-08-25",7020.0,"PIX"],["MARCELO MARCIO PRESSI","2025-08-25","2025-08-25",16131.76,"PIX"],["ATH AGROPECURIARIA LTDA","2025-08-25","2025-08-25",4350.0,"PIX"],["JBS S/A","2025-08-26","2025-08-26",6997.02,"PIX"],["JBS SA","2025-08-27","2025-08-27",27969.74,"PIX"],["JBS SA","2025-08-27","2025-08-27",2514.39,"PIX"],["RICARDO BEOZZO","2025-08-27","2025-08-27",1725.0,"PIX"],["JBS S/A","2025-08-27","2025-08-27",6585.59,"PIX"],["JBS S/A","2025-08-27","2025-08-27",8919.71,"PIX"],["JBS S/A","2025-08-27","2025-08-27",660.34,"PIX"],["JBS S/A","2025-08-27","2025-08-27",660.34,"PIX"],["JBS S/A","2025-08-27","2025-08-27",1322.95,"PIX"],["JBS S/A","2025-08-27","2025-08-27",3544.18,"PIX"],["MARCIO BARBOSA DE","2025-08-28","2025-08-28",7000.0,"PIX"],["SILVANA G CORTI DI R DI C S","2025-08-28","2025-08-28",10500.0,"PIX"],["SILVANA G CORTI DI R DI C S","2025-08-28","2025-08-28",41357.85,"PIX"],["ADILSON LUIZ","2025-08-28","2025-08-28",5180.0,"PIX"],["ADILSON LUIZ","2025-08-28","2025-08-28",1600.0,"PIX"],["MARCIO RICARDO BUSSOLA","2025-08-29","2025-08-29",19614.0,"PIX"],["GUILHERME PINEZZI","2025-08-29","2025-08-29",7000.0,"PIX"],["GIOVANNA FRIEDRICHS","2025-08-29","2025-08-29",10455.73,"PIX"],["GUILHERME PINEZZI","2025-08-29","2025-08-29",13303.75,"PIX"],["JBS SA","2025-08-29","2025-08-29",17792.43,"PIX"],["INACIO CAMILO RUARO E","2025-09-01","2025-09-01",37518.4,"PIX"],["GUSTAVO GUIMARÃES","2025-09-01","2025-09-01",14000.0,"PIX"],["GUSTAVO GUIMARÃES","2025-09-01","2025-09-01",14132.55,"PIX"],["GUSTAVO GUIMARÃES","2025-09-01","2025-09-01",14000.0,"PIX"],["JBS SA","2025-09-01","2025-09-01",3065.33,"PIX"],["JBS SA","2025-09-01","2025-09-01",9716.91,"PIX"],["JBS SA","2025-09-01","2025-09-01",4887.14,"PIX"],["ANDRE DE MORAES ZUCATO","2025-09-01","2025-09-01",222987.76,"PIX"],["ANDRE DE MORAES ZUCATO","2025-09-01","2025-09-01",3513.0,"PIX"],["CLELIO CESAR DE ALMEIA","2025-09-01","2025-09-01",4927.83,"PIX"],["JBS S/A","2025-09-01","2025-09-01",9984.61,"PIX"],["JBS S/A","2025-09-01","2025-09-01",13102.11,"PIX"],["MILTON VILELA DE","2025-09-01","2025-09-01",8044.66,"PIX"],["SEBASTIAO EDSON","2025-09-01","2025-09-01",33346.89,"PIX"],["JOSE VIDAL DE OLIVEIRA","2025-09-02","2025-09-02",3600.0,"PIX"],["JOSE VIDAL DE OLIVEIRA","2025-09-02","2025-09-02",26000.0,"PIX"],["CESAR LUIS FRIEDRICHS E","2025-09-02","2025-09-02",7400.0,"PIX"],["JBS S/A","2025-09-02","2025-09-02",5059.11,"PIX"],["JBS S/A","2025-09-02","2025-09-02",8077.26,"PIX"],["ANDRE DE MORAES ZUCATO","2025-09-02","2025-09-02",44370.81,"PIX"],["JBS S/A","2025-09-02","2025-09-02",26053.21,"PIX"],["JBS S/A","2025-09-02","2025-09-02",6765.54,"PIX"],["JBS S/A","2025-09-02","2025-09-02",10787.98,"PIX"],["ANDRE DE MORAES ZUCATO","2025-09-02","2025-09-02",7627.44,"PIX"],["MARCIO RICARDO BUSSOLA","2025-09-02","2025-09-02",20272.0,"PIX"],["MANOEL CARLOS ALVES DA","2025-09-02","2025-09-02",5900.0,"PIX"],["KARIELLY DE JESUS FARIAS","2025-09-03","2025-09-03",11120.84,"PIX"],["CARLOS ALBERTO MOREIRA","2025-09-03","2025-09-03",8201.4,"PIX"],["ANDRE DE MORAES ZUCATO","2025-09-04","2025-09-04",241970.72,"PIX"],["JBS S/A","2025-09-04","2025-09-04",2819.59,"PIX"],["JBS S/A","2025-09-04","2025-09-04",3154.81,"PIX"],["MARCIO RICARDO BUSSOLA","2025-09-04","2025-09-04",17626.0,"PIX"],["Agropecuaria Fazenda Serra","2025-09-04","2025-09-04",10000.0,"PIX"],["RODOLFO WILSON MARTINS","2025-09-05","2025-09-05",4785.0,"PIX"],["GABRIELA FABER","2025-09-05","2025-09-05",3500.0,"PIX"],["VALDECIR ALBERTO","2025-09-08","2025-09-08",4498.2,"PIX"],["GUILHERME PINEZZI","2025-09-08","2025-09-08",11853.75,"PIX"],["SEBASTIAO EDSON","2025-09-08","2025-09-08",6900.0,"PIX"],["GIONGO AGROPECUARIA","2025-09-08","2025-09-08",8727.79,"PIX"],["THALISSON JACOBSEN SEIBT","2025-09-09","2025-09-09",14102.25,"PIX"],["Frigorifico Boi Mix Ltda","2025-09-09","2025-09-09",8977.0,"PIX"],["JBS S/A","2025-09-09","2025-09-09",2024.79,"PIX"],["JBS S/A","2025-09-09","2025-09-09",10451.41,"PIX"],["ANDRE DE MORAES ZUCATO","2025-09-09","2025-09-09",136108.53,"PIX"],["JBS S/A","2025-09-09","2025-09-09",2955.36,"PIX"],["JBS S/A","2025-09-09","2025-09-09",1701.79,"PIX"],["JBS S/A","2025-09-09","2025-09-09",15276.8,"PIX"],["JBS S/A","2025-09-09","2025-09-09",1995.95,"PIX"],["JBS S/A","2025-09-09","2025-09-09",6538.63,"PIX"],["JBS S/A","2025-09-09","2025-09-09",11733.44,"PIX"],["JBS S/A","2025-09-09","2025-09-09",4671.81,"PIX"],["MARCIO RICARDO BUSSOLA","2025-09-10","2025-09-10",20370.0,"PIX"],["JBS SA","2025-09-11","2025-09-11",6541.4,"PIX"],["SERGIO AMARAL DE","2025-09-11","2025-09-11",5780.0,"PIX"],["JOSE MARIA DE MORAES","2025-09-11","2025-09-11",16516.26,"PIX"],["JBS S/A","2025-09-11","2025-09-11",6650.75,"PIX"],["JBS S/A","2025-09-11","2025-09-11",5075.11,"PIX"],["JBS S/A","2025-09-11","2025-09-11",1604.06,"PIX"],["GIOVANNA FRIEDRICHS","2025-09-11","2025-09-11",4531.9,"PIX"],["GIOVANNA FRIEDRICHS","2025-09-11","2025-09-11",10503.31,"PIX"],["JBS SA","2025-09-13","2025-09-13",3544.4,"PIX"],["WAGNER MARCELO","2025-09-13","2025-09-13",20997.0,"PIX"],["CLELIO CESAR DE ALMEIA","2025-09-13","2025-09-13",18261.04,"PIX"],["JBS SA","2025-09-16","2025-09-16",7064.06,"PIX"],["SERGIO EDUARDO MARCON","2025-09-16","2025-09-16",3800.0,"PIX"],["GABRIELA FABER","2025-09-16","2025-09-16",7000.0,"PIX"],["MAURICIO CARDOSO TONHA","2025-09-16","2025-09-16",17842.17,"PIX"],["JBS S/A","2025-09-17","2025-09-17",21350.33,"PIX"],["JBS S/A","2025-09-17","2025-09-17",3283.46,"PIX"],["JBS S/A","2025-09-17","2025-09-17",676.84,"PIX"],["JULIO EDUARDO SIMOES E","2025-09-17","2025-09-17",4472.83,"PIX"],["ANDRE DE MORAES ZUCATO","2025-09-17","2025-09-17",181439.88,"PIX"],["MILTON VILELA DE","2025-09-17","2025-09-17",11000.0,"PIX"],["SERGIO AMARAL DE","2025-09-17","2025-09-17",16976.22,"PIX"],["AGROPECUARIA DONA","2025-09-17","2025-09-17",29560.85,"PIX"],["CLELIO CESAR DE ALMEIA","2025-09-17","2025-09-17",20073.21,"PIX"],["WELITON FILHO FREITAS","2025-09-17","2025-09-17",4910.0,"PIX"],["JBS S/A","2025-09-17","2025-09-17",11312.31,"PIX"],["JBS S/A","2025-09-17","2025-09-17",3776.51,"PIX"],["JBS S/A","2025-09-17","2025-09-17",1824.32,"PIX"],["SAMUEL ANTONIO","2025-09-19","2025-09-19",10000.0,"PIX"],["GIOVANNA FRIEDRICHS","2025-09-19","2025-09-19",12096.64,"PIX"],["SERGIO EDUARDO MARCON","2025-09-19","2025-09-19",3800.0,"PIX"],["ANDRE DE MORAES ZUCATO","2025-09-22","2025-09-22",4034.32,"PIX"],["DARCE RAMALHO DOS","2025-09-22","2025-09-22",123884.46,"PIX"],["JBS S/A","2025-09-23","2025-09-23",14784.94,"PIX"],["ATH AGROPECUARIA LTDA","2025-09-23","2025-09-23",2450.0,"PIX"],["MANOEL CARLOS ALVES DA","2025-09-23","2025-09-23",22896.0,"PIX"],["GUILHERME PINEZZI","2025-09-23","2025-09-23",13303.75,"PIX"],["GUILHERME PINEZZI","2025-09-23","2025-09-23",3500.0,"PIX"],["RICARDO LIMA CARVALHO","2025-09-23","2025-09-23",8456.37,"PIX"],["ANDRE DE MORAES ZUCATO","2025-09-24","2025-09-24",211674.51,"PIX"],["ANDRE DE MORAES ZUCATO","2025-09-24","2025-09-24",30239.95,"PIX"],["RODRIGO RAGIOTTO E","2025-09-24","2025-09-24",19559.93,"PIX"],["ANTONIO MEDEIROS E","2025-09-24","2025-09-24",3700.0,"PIX"],["GIOVANNA FRIEDRICHS","2025-09-24","2025-09-24",7847.24,"PIX"],["MARCELO VALDIR CASON E","2025-09-25","2025-09-25",6814.26,"PIX"],["ANDRE DE MORAES ZUCATO","2025-09-25","2025-09-25",19090.1,"PIX"],["REONILDO DANIEL PRANTE","2025-09-25","2025-09-25",14750.0,"PIX"],["CARLOS ALBERTO MOREIRA","2025-09-25","2025-09-25",36135.7,"PIX"],["Jefferson Driessen de Souza","2025-09-26","2025-09-26",22520.76,"PIX"],["JOSE MARIA DE MORAES","2025-09-26","2025-09-26",7000.0,"PIX"],["PATRICIA AGUIAR CAMACHO","2025-09-26","2025-09-26",6512.2,"PIX"],["AGROPECUARIA RONCADOR","2025-09-29","2025-09-29",7673.8,"PIX"],["AGROPECUARIA RONCADOR","2025-09-29","2025-09-29",2000.0,"PIX"],["AGROPECUARIA RONCADOR","2025-09-29","2025-09-29",7667.92,"PIX"],["GILMAR DOMINGOS","2025-09-29","2025-09-29",21408.74,"PIX"],["JBS S/A","2025-09-29","2025-09-29",1984.75,"PIX"],["JBS S/A","2025-09-29","2025-09-29",4808.59,"PIX"],["JBS S/A","2025-09-29","2025-09-29",11843.52,"PIX"],["JBS S/A","2025-09-29","2025-09-29",11001.91,"PIX"],["JBS S/A","2025-09-29","2025-09-29",11608.2,"PIX"],["JBS S/A","2025-09-29","2025-09-29",3960.16,"PIX"],["JBS S/A","2025-09-29","2025-09-29",12471.9,"PIX"],["CARLOS ALBERTO BUSSOLA","2025-09-29","2025-09-29",20188.0,"PIX"],["SANDRA APARECIDA","2025-09-30","2025-09-30",4822.35,"PIX"],["RICARDO LIMA CARVALHO","2025-09-30","2025-09-30",17595.0,"PIX"],["SERGIO EDUARDO MARCON","2025-09-30","2025-09-30",5790.11,"PIX"],["ANDRE DE MORAES ZUCATO","2025-09-30","2025-09-30",84262.95,"PIX"],["AGROPECUARIA 5 IRMAOS","2025-10-01","2025-10-01",21480.0,"PIX"],["JBS S/A","2025-10-01","2025-10-01",45872.25,"PIX"],["JBS S/A","2025-10-01","2025-10-01",45893.3,"PIX"],["JBS S/A","2025-10-01","2025-10-01",3277.5,"PIX"],["JBS S/A","2025-10-01","2025-10-01",1641.71,"PIX"],["DARNEI GERALDO","2025-10-01","2025-10-01",11103.46,"PIX"],["DARNEI GERALDO","2025-10-01","2025-10-01",15000.0,"PIX"],["ALCENI ALVES DE FREITAS","2025-10-01","2025-10-01",34000.0,"PIX"],["CARLOS ALBERTO BUSSOLA","2025-10-02","2025-10-02",24188.02,"PIX"],["MILTON VILELA DE","2025-10-02","2025-10-02",27815.0,"PIX"],["MILTON VILELA DE","2025-10-02","2025-10-02",27815.0,"PIX"],["ANDRE DE MORAES ZUCATO","2025-10-03","2025-10-03",139274.3,"PIX"],["ANDRE DE MORAES ZUCATO","2025-10-03","2025-10-03",6239.24,"PIX"],["RICARDO PEREIRA DE BRITO","2025-10-04","2025-10-04",6000.0,"PIX"],["GAGLIARDI REIS","2025-10-06","2025-10-06",40583.0,"PIX"],["JBS S/A","2025-10-06","2025-10-06",6522.08,"PIX"],["JBS S/A","2025-10-06","2025-10-06",3900.0,"PIX"],["JBS S/A","2025-10-06","2025-10-06",3900.0,"PIX"],["JBS S/A","2025-10-06","2025-10-06",3900.0,"PIX"],["JBS S/A","2025-10-06","2025-10-06",3900.0,"PIX"],["ADILSON LUIZ","2025-10-06","2025-10-06",2900.0,"PIX"],["ADILSON LUIZ","2025-10-06","2025-10-06",800.0,"PIX"],["CARLOS ALBERTO BUSSOLA","2025-10-06","2025-10-06",21098.0,"PIX"],["GUILHERME PINEZZI","2025-10-06","2025-10-06",11853.75,"PIX"],["SEBASTIAO EDSON","2025-10-06","2025-10-06",14479.11,"PIX"],["VASCO MIL HOMENS","2025-10-06","2025-10-06",1400.0,"PIX"],["EDER DE CARVALHO GODA","2025-10-06","2025-10-06",8294.8,"PIX"],["GUILHERME PINEZZI","2025-10-07","2025-10-07",1729.0,"PIX"],["GUILHERME PINEZZI","2025-10-07","2025-10-07",3500.0,"PIX"],["GUILHERME PINEZZI","2025-10-07","2025-10-07",11853.75,"PIX"],["SAMUEL ANTONIO","2025-10-07","2025-10-07",4200.0,"PIX"],["JBS S/A","2025-10-08","2025-10-08",18356.73,"PIX"],["JBS S/A","2025-10-08","2025-10-08",3516.8,"PIX"],["JBS S/A","2025-10-08","2025-10-08",23261.08,"PIX"],["JBS S/A","2025-10-08","2025-10-08",2500.18,"PIX"],["JBS S/A","2025-10-08","2025-10-08",1332.36,"PIX"],["CLELIO CESAR DE ALMEIA","2025-10-09","2025-10-09",8250.0,"PIX"],["LUIZ CARLOS MONTEIRO","2025-10-09","2025-10-09",3700.0,"PIX"],["Rudolf Thomas Maria","2025-10-10","2025-10-10",12481.38,"PIX"],["ANA LUCIA CORDESCHI","2025-10-10","2025-10-10",8882.28,"PIX"],["REONILDO DANIEL PRANTE","2025-10-11","2025-10-11",10057.3,"PIX"],["GIOVANNA FRIEDRICHS","2025-10-11","2025-10-11",8183.14,"PIX"],["ANTONIO MILAN FILHO","2025-10-11","2025-10-11",2450.0,"PIX"],["JBS S/A","2025-10-13","2025-10-13",737.15,"PIX"],["GUILHERME PINEZZI","2025-10-13","2025-10-13",8627.5,"PIX"],["JULIO DE FATIMA ALVES -","2025-10-13","2025-10-13",3182.25,"PIX"],["Jefferson Driessen de Souza","2025-10-13","2025-10-13",6000.0,"PIX"],["JBS S/A","2025-10-13","2025-10-13",18968.62,"PIX"],["RUTENBERG ALBUQUERQUE","2025-10-13","2025-10-13",31747.11,"PIX"],["MATHEUS HENRIQUE","2025-10-14","2025-10-14",12333.86,"PIX"],["CARLOS ALBERTO BUSSOLA","2025-10-15","2025-10-15",42280.0,"PIX"],["ANDRE DE MORAES ZUCATO","2025-10-15","2025-10-15",60533.2,"PIX"],["JBS SA","2025-10-15","2025-10-15",9777.56,"PIX"],["FLAMBOYANT AGRO","2025-10-15","2025-10-15",3700.0,"PIX"],["JBS SA","2025-10-16","2025-10-16",4674.48,"PIX"],["SAMUEL ANTONIO","2025-10-16","2025-10-16",5500.0,"PIX"],["JOAO HELIO PARANAIBA","2025-10-16","2025-10-16",9600.0,"PIX"],["CARLOS ALBERTO BUSSOLA","2025-10-16","2025-10-16",21574.0,"PIX"],["MANOEL CARLOS ALVES DA","2025-10-16","2025-10-16",4725.0,"PIX"],["AFB AGROPECUARIA","2025-10-16","2025-10-16",3450.0,"PIX"],["AFB AGROPECUARIA","2025-10-16","2025-10-16",399.85,"PIX"],["MANOEL CARLOS ALVES DA","2025-10-17","2025-10-17",5475.0,"PIX"],["MANOEL CARLOS ALVES DA","2025-10-17","2025-10-17",13725.0,"PIX"],["LUIZ CARLOS MONTEIRO","2025-10-17","2025-10-17",3700.0,"PIX"],["JBS S/A","2025-10-17","2025-10-17",4196.68,"PIX"],["NIVALDO FELIPE GUERREIRO","2025-10-17","2025-10-17",62671.5,"PIX"],["CARLOS ALBERTO BUSSOLA","2025-10-20","2025-10-20",41272.0,"PIX"],["CARLOS ALBERTO BUSSOLA","2025-10-20","2025-10-20",20118.0,"PIX"],["FELIPE VILLELA PEREIRA E","2025-10-20","2025-10-20",17852.1,"PIX"],["JBS S/A","2025-10-20","2025-10-20",3951.25,"PIX"],["RICARDO ROMERO PIRES E","2025-10-22","2025-10-22",6041.32,"PIX"],["JULIO GALLO","2025-10-22","2025-10-22",26400.0,"PIX"],["MILTON VILELA DE","2025-10-24","2025-10-24",5000.0,"PIX"],["WAGNER MARCELO","2025-10-24","2025-10-24",15000.0,"PIX"],["SERGIO AMARAL DE","2025-10-25","2025-10-25",20860.73,"PIX"],["RUTENBERG ALBUQUERQUE","2025-10-27","2025-10-27",22930.57,"PIX"],["EVARISTO TAGLIARI NETO E","2025-10-27","2025-10-27",58532.88,"PIX"],["REONILDO DANIEL PRANTE","2025-10-27","2025-10-27",3500.0,"PIX"],["CARLOS EDUARDO SVERZUT","2025-10-27","2025-10-27",4000.0,"PIX"],["JBS S/A","2025-10-27","2025-10-27",3561.06,"PIX"],["JBS S/A","2025-10-27","2025-10-27",10575.79,"PIX"],["JBS S/A","2025-10-27","2025-10-27",17953.2,"PIX"],["JBS S/A","2025-10-27","2025-10-27",8391.38,"PIX"],["JBS S/A","2025-10-27","2025-10-27",662.72,"PIX"],["JBS S/A","2025-10-27","2025-10-27",1865.19,"PIX"],["JBS S/A","2025-10-27","2025-10-27",2453.1,"PIX"],["JBS S/A","2025-10-27","2025-10-27",8901.3,"PIX"],["JBS S/A","2025-10-27","2025-10-27",3289.87,"PIX"],["JBS S/A","2025-10-27","2025-10-27",12303.95,"PIX"],["JBS S/A","2025-10-27","2025-10-27",2559.12,"PIX"],["MARISTELA ROSA VALIM DE","2025-10-28","2025-10-28",66462.03,"PIX"],["MARISTELA ROSA VALIM DE","2025-10-28","2025-10-28",66462.22,"PIX"],["GUILHERME PINEZZI","2025-10-28","2025-10-28",3951.25,"PIX"],["JBS SA","2025-10-28","2025-10-28",9804.21,"PIX"],["WELITON FILHO FREITAS","2025-10-29","2025-10-29",52652.25,"PIX"],["LUIZ CARLOS MONTEIRO","2025-10-29","2025-10-29",3700.0,"PIX"],["DARCE RAMALHO DOS","2025-10-29","2025-10-29",32586.1,"PIX"],["JOSE ALBERTO GIMENEZ","2025-10-29","2025-10-29",2795.66,"PIX"],["JOSE ALBERTO GIMENEZ","2025-10-29","2025-10-29",1000.0,"PIX"],["JBS S/A","2025-10-29","2025-10-29",460.89,"PIX"],["JBS S/A","2025-10-29","2025-10-29",907.67,"PIX"],["JBS S/A","2025-10-29","2025-10-29",20044.18,"PIX"],["JBS S/A","2025-10-29","2025-10-29",7444.31,"PIX"],["JBS S/A","2025-10-29","2025-10-29",3544.51,"PIX"],["JBS S/A","2025-10-29","2025-10-29",662.65,"PIX"],["JBS S/A","2025-10-29","2025-10-29",1606.95,"PIX"],["ATTO AGRICOLA LTDA","2025-10-29","2025-10-29",106445.62,"PIX"],["GUILHERME PINEZZI","2025-10-30","2025-10-30",4625.5,"PIX"],["GUILHERME PINEZZI","2025-10-30","2025-10-30",7902.5,"PIX"],["ANA LUCIA CORDESCHI","2025-10-30","2025-10-30",7400.0,"PIX"],["JBS S/A","2025-11-01","2025-11-01",15400.0,"PIX"],["JBS S/A","2025-11-01","2025-11-01",4031.2,"PIX"],["JBS S/A","2025-11-03","2025-11-03",30568.33,"PIX"],["ANTONIO MILAN FILHO","2025-11-03","2025-11-03",13800.0,"PIX"],["RUTENBERG ALBUQUERQUE","2025-11-04","2025-11-04",56540.5,"PIX"],["CARLOS ALBERTO BUSSOLA","2025-11-04","2025-11-04",20748.0,"PIX"],["MAURICIO CARDOSO TONHA","2025-11-04","2025-11-04",19435.0,"PIX"],["ANTONIO PAULO DE","2025-11-05","2025-11-05",3450.0,"PIX"],["GAGLIARDI REIS","2025-11-05","2025-11-05",7465.0,"PIX"],["EVARISTO TAGLIARI NETO E","2025-11-06","2025-11-06",24501.79,"PIX"],["Agropecuaria Fazenda Serra","2025-11-06","2025-11-06",4000.0,"PIX"],["RENATO BURGEL E OUTROS","2025-11-07","2025-11-07",1882.75,"PIX"],["RENATO BURGEL E OUTROS","2025-11-07","2025-11-07",14234.49,"PIX"],["JBS S/A","2025-11-07","2025-11-07",40479.0,"PIX"],["FRIGORIFICO BETTER BEEF","2025-11-07","2025-11-07",54648.0,"PIX"],["FRIGORIFICO BETTER BEEF","2025-11-07","2025-11-07",20196.0,"PIX"],["JOAO LEAO PINTO NETO -","2025-11-07","2025-11-07",3489.0,"PIX"],["CARLOS ALBERTO BUSSOLA","2025-11-10","2025-11-10",18018.0,"PIX"],["ALCENI ALVES DE FREITAS","2025-11-10","2025-11-10",4900.0,"PIX"],["JBS SA","2025-11-10","2025-11-10",3007.5,"PIX"],["EVARISTO TAGLIARI NETO E","2025-11-11","2025-11-11",12856.96,"PIX"],["DIRCEU DE ANDRADE","2025-11-11","2025-11-11",2900.0,"PIX"],["JBS S/A","2025-11-11","2025-11-11",5657.97,"PIX"],["JBS S/A","2025-11-11","2025-11-11",14781.11,"PIX"],["JBS S/A","2025-11-11","2025-11-11",4859.86,"PIX"],["JBS S/A","2025-11-11","2025-11-11",663.24,"PIX"],["JBS S/A","2025-11-11","2025-11-11",8860.32,"PIX"],["MILTON VILELA DE","2025-11-11","2025-11-11",49361.32,"PIX"],["FLORACI DE FREITAS","2025-11-11","2025-11-11",4500.0,"PIX"],["FLORACI DE FREITAS","2025-11-11","2025-11-11",15000.0,"PIX"],["AGROPECUARIA VISTA","2025-11-12","2025-11-12",16219.5,"PIX"],["JBS S/A","2025-11-12","2025-11-12",8936.53,"PIX"],["JBS S/A","2025-11-12","2025-11-12",5929.9,"PIX"],["JBS S/A","2025-11-12","2025-11-12",5660.5,"PIX"],["JBS S/A","2025-11-12","2025-11-12",19668.05,"PIX"],["JOSE RICARDO REZEK","2025-11-12","2025-11-12",919.55,"PIX"],["JOSE RICARDO REZEK","2025-11-12","2025-11-12",3000.0,"PIX"],["EDUARDO MUSA DE FREITAS","2025-11-12","2025-11-12",4000.0,"PIX"],["GUILHERME PINEZZI","2025-11-12","2025-11-12",7902.5,"PIX"],["GUILHERME PINEZZI","2025-11-12","2025-11-12",7000.0,"PIX"],["CARLOS ALBERTO BUSSOLA","2025-11-13","2025-11-13",19670.0,"PIX"],["SEBASTIAO EDSON","2025-11-13","2025-11-13",4000.0,"PIX"],["MILTON VILELA DE","2025-11-13","2025-11-13",52871.0,"PIX"],["CARLOS ALBERTO BUSSOLA","2025-11-14","2025-11-14",18046.0,"PIX"],["WIMA PARTICIPACOES SA","2025-11-17","2025-11-14",12250.0,"PIX"],["CARLOS ALBERTO BUSSOLA","2025-11-17","2025-11-17",22022.0,"PIX"],["JBS S/A","2025-11-17","2025-11-17",9030.31,"PIX"],["JBS S/A","2025-11-17","2025-11-17",7084.76,"PIX"],["JBS S/A","2025-11-17","2025-11-17",1281.68,"PIX"],["JBS S/A","2025-11-17","2025-11-17",2783.2,"PIX"],["JBS S/A","2025-11-17","2025-11-17",12041.26,"PIX"],["JBS S/A","2025-11-17","2025-11-17",3754.85,"PIX"],["JOSE CARLOS DUARTE DA","2025-11-17","2025-11-17",10654.72,"PIX"],["ALADINO SELMI NETO","2025-11-17","2025-11-17",3450.0,"PIX"],["AGROPECUARIA MANNA","2025-11-17","2025-11-17",14525.0,"PIX"],["IDELFONSO COELHO","2025-11-18","2025-11-18",1000.0,"PIX"],["JBS SA","2025-11-18","2025-11-18",12410.0,"PIX"],["ROBSON PRUDENTE SOUZA -","2025-11-19","2025-11-19",10398.05,"PIX"],["FABIO CUNHA DA CAMARA","2025-11-19","2025-11-19",5343.75,"PIX"],["JBS SA","2025-11-21","2025-11-21",10788.83,"PIX"],["GAGLIARDI REIS","2025-11-21","2025-11-21",7544.0,"PIX"],["CLARINDO LAZARO GARCIA","2025-11-24","2025-11-24",13300.0,"PIX"],["JOSE TONTIM DOS SANTOS -","2025-11-24","2025-11-24",2348.5,"PIX"],["JOSE TONTIM DOS SANTOS -","2025-11-24","2025-11-24",2215.5,"PIX"],["JBS S/A","2025-11-24","2025-11-24",15254.87,"PIX"],["JBS S/A","2025-11-24","2025-11-24",25767.87,"PIX"],["JBS S/A","2025-11-24","2025-11-24",2839.42,"PIX"],["JBS S/A","2025-11-24","2025-11-24",16808.57,"PIX"],["CARLOS ALBERTO BUSSOLA","2025-11-24","2025-11-24",19166.0,"PIX"],["GUILHERME PINEZZI","2025-11-24","2025-11-24",11853.75,"PIX"],["ANA CLAUDIA BORGES DE","2025-11-25","2025-11-25",57320.21,"PIX"],["FRIGORIFICO BETTER BEEF","2025-11-25","2025-11-25",65208.0,"PIX"],["Agropecuaria Baru Fc Ltda","2025-11-25","2025-11-25",10000.0,"PIX"],["Agropecuaria Baru Fc Ltda","2025-11-25","2025-11-25",25500.0,"PIX"],["JBS SA","2025-11-26","2025-11-26",6835.15,"PIX"],["Agropecuaria Fazenda Serra","2025-11-26","2025-11-26",64551.83,"PIX"],["BOM JESUS AGROPECUARIA","2025-11-26","2025-11-26",19600.0,"PIX"],["CARLOS ALBERTO BUSSOLA","2025-11-26","2025-11-26",21182.0,"PIX"],["MARIA CRISTINA MARTINS","2025-11-26","2025-11-26",19685.87,"PIX"],["RAFAEL CARVALHO","2025-11-26","2025-11-26",7011.44,"PIX"],["ANDRE DE MORAES ZUCATO","2025-11-27","2025-11-27",211682.38,"PIX"],["AGROPECUARIA VISTA","2025-11-28","2025-11-28",15889.5,"PIX"],["GUILHERME PINEZZI","2025-11-28","2025-11-28",12939.64,"PIX"],["MAURICIO CARDOSO TONHA","2025-11-28","2025-11-28",2888.15,"PIX"],["DIRCEU DE ANDRADE","2025-11-28","2025-11-28",2400.0,"PIX"],["GUILHERME AUGUSTO","2025-11-29","2025-11-29",3214.35,"PIX"],["CARLOS ALBERTO BUSSOLA","2025-12-01","2025-12-01",19754.0,"PIX"],["JBS S/A","2025-12-01","2025-12-01",10829.56,"PIX"],["JBS S/A","2025-12-01","2025-12-01",11835.29,"PIX"],["JBS S/A","2025-12-01","2025-12-01",14040.52,"PIX"],["GUILHERME PINEZZI","2025-12-01","2025-12-01",7902.5,"PIX"],["JBS S/A","2025-12-01","2025-12-01",7488.83,"PIX"],["JBS S/A","2025-12-01","2025-12-01",27422.33,"PIX"],["JBS S/A","2025-12-01","2025-12-01",16808.57,"PIX"],["JBS S/A","2025-12-01","2025-12-01",8503.49,"PIX"],["ANA LUCIA CORDESCHI","2025-12-01","2025-12-01",10828.26,"PIX"],["IDELFONSO COELHO","2025-12-01","2025-12-01",1000.0,"PIX"],["HELIO RODOLFO","2025-12-02","2025-12-02",27500.0,"PIX"],["ANDRE DE MORAES ZUCATO","2025-12-02","2025-12-02",90722.92,"PIX"],["SERGIO EDUARDO MARCON","2025-12-03","2025-12-03",6000.0,"PIX"],["Agropecuaria Fazenda Serra","2025-12-03","2025-12-03",3923.34,"PIX"],["PAULO ROGERIO DE MORAIS","2025-12-03","2025-12-03",6828.93,"PIX"],["JBS SA","2025-12-04","2025-12-04",2994.42,"PIX"],["WELITON FILHO FREITAS","2025-12-04","2025-12-04",4500.0,"PIX"],["JBS SA","2025-12-05","2025-12-05",27357.56,"PIX"],["EVARISTO TAGLIARI NETO E","2025-12-05","2025-12-05",146413.31,"PIX"],["GAGLIARDI REIS","2025-12-05","2025-12-05",14929.0,"PIX"],["ANTONIO MEDEIROS E","2025-12-06","2025-12-06",17250.0,"PIX"],["Rudolf Thomas Maria","2025-12-08","2025-12-08",14000.0,"PIX"],["CARLOS ALBERTO BUSSOLA","2025-12-08","2025-12-08",20244.0,"PIX"],["CLARINDO LAZARO GARCIA","2025-12-08","2025-12-08",19511.2,"PIX"],["CARLOS ALBERTO BUSSOLA","2025-12-08","2025-12-08",17864.0,"PIX"],["JOAO LUIZ SERESUELA","2025-12-08","2025-12-08",17850.0,"PIX"],["JBS S/A","2025-12-08","2025-12-08",9294.82,"PIX"],["JBS SA","2025-12-08","2025-12-08",2500.18,"PIX"],["JBS SA","2025-12-08","2025-12-08",49808.75,"PIX"],["JBS S/A","2025-12-09","2025-12-09",19368.89,"PIX"],["JBS S/A","2025-12-09","2025-12-09",16280.51,"PIX"],["REONILDO DANIEL PRANTE","2025-12-09","2025-12-09",8000.0,"PIX"],["JBS S/A","2025-12-09","2025-12-09",6742.24,"PIX"],["JBS S/A","2025-12-09","2025-12-09",8409.53,"PIX"],["JBS S/A","2025-12-09","2025-12-09",8607.86,"PIX"],["ALEXANDRE RONDON","2025-12-10","2025-12-10",28348.34,"PIX"],["MAURICIO CARDOSO TONHA","2025-12-10","2025-12-10",14000.0,"PIX"],["GUILHERME PINEZZI","2025-12-10","2025-12-10",7902.5,"PIX"],["JBS SA","2025-12-11","2025-12-11",40292.92,"PIX"],["CARLOS ALBERTO BUSSOLA","2025-12-11","2025-12-11",20692.0,"PIX"],["FABIANNE BARROS","2025-12-11","2025-12-11",4556.0,"PIX"],["JBS SA","2025-12-12","2025-12-12",1773.33,"PIX"],["DALTRO TELES LEAO JUNIOR","2025-12-12","2025-12-12",23085.75,"PIX"],["JBS S/A","2025-12-12","2025-12-12",7964.06,"PIX"],["JBS S/A","2025-12-12","2025-12-12",17673.04,"PIX"],["JBS SA","2025-12-13","2025-12-13",27393.39,"PIX"],["CARLOS ALBERTO BUSSOLA","2025-12-15","2025-12-15",20244.0,"PIX"],["AGROPECUARIA VISTA","2025-12-15","2025-12-15",12753.4,"PIX"],["JBS S/A","2025-12-15","2025-12-15",3983.77,"PIX"],["JBS S/A","2025-12-15","2025-12-15",27846.0,"PIX"],["ERNESTO GUILHERME","2025-12-15","2025-12-15",2760.0,"PIX"],["ANDRE DE MORAES ZUCATO","2025-12-16","2025-12-16",184815.75,"PIX"],["JBS S/A","2025-12-16","2025-12-16",25368.13,"PIX"],["JBS SA","2025-12-17","2025-12-17",2419.29,"PIX"],["JBS SA","2025-12-17","2025-12-17",42173.92,"PIX"],["NEI EUSEBIO VIAN","2025-12-17","2025-12-17",4300.0,"PIX"],["JBS S/A","2025-12-17","2025-12-17",29309.3,"PIX"],["JBS S/A","2025-12-17","2025-12-17",47274.29,"PIX"],["JBS S/A","2025-12-17","2025-12-17",21018.26,"PIX"],["AGROPECUARIA AGUA VIVA","2025-12-18","2025-12-18",7140.61,"PIX"],["JBS S/A","2025-12-18","2025-12-18",4988.04,"PIX"],["ANA LUCIA CORDESCHI","2025-12-18","2025-12-18",14507.48,"PIX"],["JBS SA","2025-12-19","2025-12-19",48144.19,"PIX"],["SEBASTIAO EDSON","2025-12-19","2025-12-19",3450.0,"PIX"],["NIVALDO FELIPE GUERREIRO","2025-12-19","2025-12-19",18750.0,"PIX"],["REONILDO DANIEL PRANTE","2025-12-19","2025-12-19",18200.0,"PIX"],["TALITA HAIDAR ARBID","2025-12-19","2025-12-19",4326.41,"PIX"],["FAMMA AGROPECUARIA","2025-12-20","2025-12-20",13349.29,"PIX"],["GUILHERME PINEZZI","2025-12-20","2025-12-20",15805.0,"PIX"],["JBS S/A","2025-12-20","2025-12-20",9561.57,"PIX"],["JBS SA","2025-12-20","2025-12-20",13692.03,"PIX"],["JBS SA","2025-12-20","2025-12-20",13692.03,"PIX"],["HELIO RODOLFO","2025-12-20","2025-12-20",21000.0,"PIX"],["FLAVIA RAUCCI FACCHINI -","2025-12-20","2025-12-20",24300.0,"PIX"],["MARIA CRISTINA MARTINS","2025-12-22","2025-12-22",11207.64,"PIX"],["GAGLIARDI REIS","2025-12-22","2025-12-22",8375.0,"PIX"],["JBS S/A","2025-12-23","2025-12-23",13966.33,"PIX"],["JBS S/A","2025-12-23","2025-12-23",28726.68,"PIX"],["JBS S/A","2025-12-23","2025-12-23",516.21,"PIX"],["FRIGORIFICO BETTER BEEF","2025-12-26","2025-12-26",89166.0,"PIX"],["AGROPECUARIA VISTA","2025-12-29","2025-12-29",134273.7,"PIX"],["JBS S/A","2025-12-31","2025-12-31",2016.0,"PIX"],["JBS SA","2026-01-05","2026-01-05",6472.82,"PIX"],["GUILHERME PINEZZI","2026-01-09","2026-01-09",11853.75,"PIX"],["MARCIO RICARDO BUSSOLA","2026-01-09","2026-01-09",18564.0,"PIX"],["JBS SA","2026-01-09","2026-01-09",47020.6,"PIX"],["JBS S/A","2026-01-12","2026-01-12",1504.91,"PIX"],["JBS S/A","2026-01-12","2026-01-12",16310.51,"PIX"],["JBS S/A","2026-01-12","2026-01-12",2945.41,"PIX"],["JBS S/A","2026-01-12","2026-01-12",4171.43,"PIX"],["JBS S/A","2026-01-12","2026-01-12",7063.56,"PIX"],["JBS S/A","2026-01-12","2026-01-12",7561.2,"PIX"],["JBS SA","2026-01-12","2026-01-12",26845.27,"PIX"],["MAURICIO CARDOSO TONHA","2026-01-13","2026-01-13",33285.97,"PIX"],["Barra Alimentos Ltda","2026-01-13","2026-01-13",5500.0,"PIX"],["RODRIGO RAGIOTTO E","2026-01-13","2026-01-13",8599.75,"PIX"],["ANDRE DE MORAES ZUCATO","2026-01-13","2026-01-13",178122.2,"PIX"],["JBS SA","2026-01-14","2026-01-14",38824.32,"PIX"],["JBS S/A","2026-01-14","2026-01-14",6186.58,"PIX"],["NIVALDO FELIPE GUERREIRO","2026-01-14","2026-01-14",3250.0,"PIX"],["THAIS MICHELE GOULART E","2026-01-14","2026-01-14",32712.0,"PIX"],["CASSIA CARMO FARIAS","2026-01-14","2026-01-14",11100.0,"PIX"],["MAURICIO CARDOSO TONHA","2026-01-15","2026-01-15",7805.96,"PIX"],["JBS SA","2026-01-15","2026-01-15",25095.77,"PIX"],["MANOEL CARLOS ALVES DA","2026-01-15","2026-01-15",2200.0,"PIX"],["MARCIO RICARDO BUSSOLA","2026-01-16","2026-01-16",20146.0,"PIX"],["Agropecuaria Fazenda Serra","2026-01-16","2026-01-16",73739.84,"PIX"],["MILTON VILELA DE","2026-01-16","2026-01-16",74566.64,"PIX"],["MILTON VILELA DE","2026-01-16","2026-01-16",74566.64,"PIX"],["MARCIO RICARDO BUSSOLA","2026-01-16","2026-01-16",21280.0,"PIX"],["GUILHERME PINEZZI","2026-01-16","2026-01-16",12463.59,"PIX"],["JBS SA","2026-01-17","2026-01-17",6714.27,"PIX"],["MARCIO RICARDO BUSSOLA","2026-01-19","2026-01-19",16900.0,"PIX"],["JBS S/A","2026-01-19","2026-01-19",1596.3,"PIX"],["JBS S/A","2026-01-19","2026-01-19",18140.25,"PIX"],["JBS S/A","2026-01-19","2026-01-19",14306.7,"PIX"],["JBS S/A","2026-01-19","2026-01-19",1223.07,"PIX"],["HELIO RODOLFO","2026-01-19","2026-01-19",15000.0,"PIX"],["WELINGTON BRASIL","2026-01-19","2026-01-19",50927.94,"PIX"],["AGROPECUARIA AGUA VIVA","2026-01-20","2026-01-20",24215.0,"PIX"],["ANDRE DE MORAES ZUCATO","2026-01-20","2026-01-20",51260.1,"PIX"],["ANDRE DE MORAES ZUCATO","2026-01-20","2026-01-20",3455.17,"PIX"],["MARCIO RICARDO BUSSOLA","2026-01-20","2026-01-20",21630.0,"PIX"],["ADRIANO BISSONI E OUTROS","2026-01-20","2026-01-20",2977.29,"PIX"],["ADRIANO BISSONI E OUTROS","2026-01-20","2026-01-20",6500.0,"PIX"],["JBS SA","2026-01-21","2026-01-21",33562.39,"PIX"],["LUIZ CARLOS MONTEIRO","2026-01-21","2026-01-21",8000.0,"PIX"],["ANDRE DE MORAES ZUCATO","2026-01-21","2026-01-21",4191.12,"PIX"],["JBS SA","2026-01-22","2026-01-22",44168.11,"PIX"],["ATTO AGRICOLA LTDA","2026-01-22","2026-01-22",11313.0,"PIX"],["GUILHERME PINEZZI","2026-01-23","2026-01-23",7902.5,"PIX"],["MARCIO RICARDO BUSSOLA","2026-01-24","2026-01-24",21938.0,"PIX"],["MARIA CRISTINA MARTINS","2026-01-26","2026-01-26",9820.0,"PIX"],["STEVEN ERIKSEN BINNIE","2026-01-26","2026-01-26",29896.1,"PIX"],["JBS S/A","2026-01-26","2026-01-26",1322.9,"PIX"],["JBS S/A","2026-01-26","2026-01-26",18516.1,"PIX"],["JARBAS MENDES VILELA DE","2026-01-26","2026-01-26",2950.0,"PIX"],["RAFAEL CARVALHO","2026-01-26","2026-01-26",3700.0,"PIX"],["ANA CLAUDIA BORGES DE","2026-01-26","2026-01-26",22816.8,"PIX"],["ANA CLAUDIA BORGES DE","2026-01-26","2026-01-26",47304.0,"PIX"],["ANA CLAUDIA BORGES DE","2026-01-26","2026-01-26",20732.0,"PIX"],["CLELIO CESAR DE ALMEIA","2026-01-26","2026-01-26",16224.68,"PIX"],["JOSE CARLOS DUARTE DA","2026-01-26","2026-01-26",14604.22,"PIX"],["ANDRE DE MORAES ZUCATO","2026-01-27","2026-01-27",86249.1,"PIX"],["SERGIO AMARAL DE","2026-01-27","2026-01-27",11750.0,"PIX"],["ANTONIO MEDEIROS E","2026-01-28","2026-01-28",9000.0,"PIX"],["Joao Ernesto Segabinazzi","2026-01-28","2026-01-28",8783.8,"PIX"],["JBS SA","2026-01-29","2026-01-29",34615.16,"PIX"],["JBS SA","2026-01-29","2026-01-29",37432.67,"PIX"],["Agropecuaria Baru Fc Ltda","2026-01-29","2026-01-29",43500.0,"PIX"],["Agropecuaria Baru Fc Ltda","2026-01-29","2026-01-29",19000.0,"PIX"],["NIVALDO FELIPE GUERREIRO","2026-01-29","2026-01-29",2000.0,"PIX"],["NIVALDO FELIPE GUERREIRO","2026-01-29","2026-01-29",2000.0,"PIX"],["NIVALDO FELIPE GUERREIRO","2026-01-29","2026-01-29",2000.0,"PIX"],["NIVALDO FELIPE GUERREIRO","2026-01-29","2026-01-29",2000.0,"PIX"],["NIVALDO FELIPE GUERREIRO","2026-01-29","2026-01-29",2000.0,"PIX"],["SERGIO EDUARDO MARCON","2026-01-29","2026-01-29",2300.0,"PIX"],["MAURICIO CARDOSO TONHA","2026-01-29","2026-01-29",12550.0,"PIX"],["MAURICIO CARDOSO TONHA","2026-01-29","2026-01-29",2800.0,"PIX"],["ANDRE DE MORAES ZUCATO","2026-01-29","2026-01-29",8226.78,"PIX"],["AFB AGROPECUARIA","2026-02-02","2026-02-02",4000.0,"PIX"],["AFB AGROPECUARIA","2026-02-02","2026-02-02",1675.0,"PIX"],["ANA CLAUDIA BORGES DE","2026-02-02","2026-02-02",38529.4,"PIX"],["JBS S/A","2026-02-02","2026-02-02",1322.83,"PIX"],["JBS S/A","2026-02-02","2026-02-02",14713.09,"PIX"],["AGROPECUARIA RONCADOR","2026-02-02","2026-02-02",8000.0,"PIX"],["AGROPECUARIA RONCADOR","2026-02-02","2026-02-02",8800.0,"PIX"],["GUILHERME SANTIAGO","2026-02-02","2026-02-02",16193.72,"PIX"],["ADILSON LUIZ","2026-02-02","2026-02-02",5800.0,"PIX"],["ADILSON LUIZ","2026-02-02","2026-02-02",4000.0,"PIX"],["TRANSPORTES 4 PATAS","2026-02-03","2026-02-03",3764.42,"PIX"],["MAURICIO CARDOSO TONHA","2026-02-03","2026-02-03",4178.97,"PIX"],["MILTON VILELA DE","2026-02-03","2026-02-03",500.0,"PIX"],["ROBISSON EUGENIO","2026-02-04","2026-02-04",2920.0,"PIX"],["WELITON FILHO FREITAS","2026-02-04","2026-02-04",2500.0,"PIX"],["GUILHERME PINEZZI","2026-02-04","2026-02-04",21000.0,"PIX"],["MAURICIO CARDOSO TONHA","2026-02-05","2026-02-05",8506.65,"PIX"],["PAULO RODRIGO TRENTINI","2026-02-05","2026-02-05",16211.6,"PIX"],["ROGERIO FACHIN","2026-02-05","2026-02-05",8126.4,"PIX"],["ANDRE DE MORAES ZUCATO","2026-02-06","2026-02-06",24700.0,"PIX"],["ANDRE DE MORAES ZUCATO","2026-02-07","2026-02-07",3672.59,"PIX"],["BRENNO DE CAMARGO","2026-02-09","2026-02-09",2950.0,"PIX"],["JBS SA","2026-02-09","2026-02-09",263.25,"PIX"],["CSAP - COMPANHIA SUL","2026-02-09","2026-02-09",335302.02,"PIX"],["DANIEL BARBOZA ROSA","2026-02-09","2026-02-09",2500.0,"PIX"],["MARCIO CAETANO ROSA","2026-02-09","2026-02-09",2500.0,"PIX"],["MARCIO CAETANO ROSA","2026-02-09","2026-02-09",2500.0,"PIX"],["JBS S/A","2026-02-09","2026-02-09",5558.44,"PIX"],["JBS S/A","2026-02-09","2026-02-09",10004.69,"PIX"],["JBS S/A","2026-02-09","2026-02-09",799.17,"PIX"],["JBS S/A","2026-02-09","2026-02-09",2336.38,"PIX"],["ANDRE DE MORAES ZUCATO","2026-02-11","2026-02-11",270000.0,"PIX"],["ADILSON LUIZ","2026-02-11","2026-02-11",2000.0,"PIX"],["ADILSON LUIZ","2026-02-11","2026-02-11",2900.0,"PIX"],["RODOLFO WILSON MARTINS","2026-02-11","2026-02-11",4785.0,"PIX"],["Maildo Alves Ferreira","2026-02-11","2026-02-11",12000.0,"PIX"],["Maildo Alves Ferreira","2026-02-11","2026-02-11",15000.0,"PIX"],["JBS SA","2026-02-11","2026-02-11",40285.64,"PIX"],["JBS SA","2026-02-12","2026-02-12",20612.58,"PIX"],["DJALMA SCATOLINI E","2026-02-12","2026-02-12",3000.0,"PIX"],["ANDRE DE MORAES ZUCATO","2026-02-12","2026-02-12",13600.0,"PIX"],["ANDRE DE MORAES ZUCATO","2026-02-12","2026-02-12",218764.71,"PIX"],["WELINGTON BRASIL","2026-02-12","2026-02-12",15400.0,"PIX"],["HENRIQUE TAVARES","2026-02-12","2026-02-12",19939.3,"PIX"],["ANTONIO MEDEIROS E","2026-02-12","2026-02-12",12300.0,"PIX"],["JBS S/A","2026-02-13","2026-02-13",5205.59,"PIX"],["JBS S/A","2026-02-16","2026-02-16",4482.37,"PIX"],["JBS S/A","2026-02-16","2026-02-16",1990.93,"PIX"],["JBS S/A","2026-02-16","2026-02-16",3762.03,"PIX"],["Matheus Lucio de Goes \" Em","2026-02-18","2026-02-18",34020.4,"PIX"],["ADEMIR ORTIZ DE GOES","2026-02-18","2026-02-18",7000.0,"PIX"],["MANOEL CARLOS ALVES DA","2026-02-18","2026-02-18",735.0,"PIX"],["MANOEL CARLOS ALVES DA","2026-02-18","2026-02-18",3900.0,"PIX"],["LUIZ ANTONIO BATISTELA","2026-02-18","2026-02-18",3500.0,"PIX"],["DENAMAR FERRARI","2026-02-18","2026-02-18",3817.5,"PIX"],["MAURICIO CARDOSO TONHA","2026-02-18","2026-02-18",6626.25,"PIX"],["WELITON FILHO FREITAS","2026-02-18","2026-02-18",3700.0,"PIX"],["ADELCINO FRANCISCO LOPO","2026-02-18","2026-02-18",5633.0,"PIX"],["ADELCINO FRANCISCO LOPO","2026-02-18","2026-02-18",16317.0,"PIX"],["CSAP - COMPANHIA SUL","2026-02-18","2026-02-18",52220.54,"PIX"],["JBS SA","2026-02-19","2026-02-19",20204.86,"PIX"],["GAGLIARDI REIS","2026-02-19","2026-02-19",15566.0,"PIX"],["FERNANDO MORAES E","2026-02-21","2026-02-21",4053.72,"PIX"],["LUIZ CARLOS MONTEIRO","2026-02-21","2026-02-21",3778.1,"PIX"],["ANTONIO CARLOS TURAZZA","2026-02-23","2026-02-23",8695.76,"PIX"],["PAULO ROGERIO DE MORAIS","2026-02-23","2026-02-23",44003.52,"PIX"],["Agropecuaria Fazenda Serra","2026-02-24","2026-02-24",9463.76,"PIX"],["ANDRE DE MORAES ZUCATO","2026-02-24","2026-02-24",3000.0,"PIX"],["ANDRE DE MORAES ZUCATO","2026-02-24","2026-02-24",35684.88,"PIX"],["ANDRE DE MORAES ZUCATO","2026-02-24","2026-02-24",4900.0,"PIX"],["ANDRE DE MORAES ZUCATO","2026-02-24","2026-02-24",180934.2,"PIX"],["JBS S/A","2026-02-24","2026-02-24",4745.25,"PIX"],["JBS S/A","2026-02-24","2026-02-24",24486.02,"PIX"],["JBS S/A","2026-02-24","2026-02-24",1304.01,"PIX"],["JBS SA","2026-02-25","2026-02-25",20193.73,"PIX"],["JBS SA","2026-02-25","2026-02-25",33571.37,"PIX"],["ANDRE DE MORAES ZUCATO","2026-02-25","2026-02-25",10307.5,"PIX"],["DANIEL BARBOZA ROSA -","2026-02-25","2026-02-25",4033.5,"PIX"],["ABEL TERRUGGI","2026-02-25","2026-02-25",59832.17,"PIX"],["WELITON FILHO FREITAS","2026-02-26","2026-02-26",3700.0,"PIX"],["ANDRE DE MORAES ZUCATO","2026-02-26","2026-02-26",6475.65,"PIX"],["ANDRE DE MORAES ZUCATO","2026-02-26","2026-02-26",8697.77,"PIX"],["THALISSON JACOBSEN SEIBT","2026-02-26","2026-02-26",15363.85,"PIX"],["AGROPECUARIA RIO DA","2026-02-27","2026-02-27",32176.14,"PIX"],["JBS SA","2026-02-27","2026-02-27",40363.28,"PIX"],["ANDRE DE MORAES ZUCATO","2026-02-27","2026-02-27",6202.71,"PIX"],["ANDRE DE MORAES ZUCATO","2026-02-28","2026-02-28",5700.0,"PIX"],["REONILDO DANIEL PRANTE","2026-03-02","2026-03-02",2950.0,"PIX"],["ADEBERTO DA ROCHA PINTO","2026-03-02","2026-03-02",5000.0,"PIX"],["LUIZ CARLOS MONTEIRO","2026-03-02","2026-03-02",7400.0,"PIX"],["WELITON FILHO FREITAS","2026-03-02","2026-03-02",11810.0,"PIX"],["SIMONE MARCHESI","2026-03-02","2026-03-02",16000.0,"PIX"],["RICARDO BEOZZO","2026-03-02","2026-03-02",28000.0,"PIX"],["MAURICIO CARDOSO TONHA","2026-03-02","2026-03-02",19181.93,"PIX"],["BENHUR ALVARENGA","2026-03-03","2026-03-03",10000.0,"PIX"],["JBS S/A","2026-03-04","2026-03-04",19710.76,"PIX"],["ADILSON LUIZ","2026-03-04","2026-03-04",4900.0,"PIX"],["JBS SA","2026-03-04","2026-03-04",33656.58,"PIX"],["ANTONIO MEDEIROS E","2026-03-04","2026-03-04",14500.0,"PIX"],["MILTON VILELA DE","2026-03-05","2026-03-05",20000.0,"PIX"],["MILTON VILELA DE","2026-03-05","2026-03-05",32000.0,"PIX"],["JBS SA","2026-03-05","2026-03-05",33577.43,"PIX"],["ANDRE DE MORAES ZUCATO","2026-03-05","2026-03-05",12109.65,"PIX"],["ANDRE DE MORAES ZUCATO","2026-03-05","2026-03-05",32000.0,"PIX"],["ANDRE DE MORAES ZUCATO","2026-03-05","2026-03-05",4212.19,"PIX"],["ANDRE DE MORAES ZUCATO","2026-03-05","2026-03-05",4000.0,"PIX"],["RAPHAEL COSTA MOTTA","2026-03-05","2026-03-05",4000.0,"PIX"],["RUBENS SALES ANDRADE","2026-03-05","2026-03-05",8500.0,"PIX"],["Leonardo Schio e Outros","2026-03-06","2026-03-06",10587.54,"PIX"],["EQMG AGRICULTURA E","2026-03-06","2026-03-06",2000.0,"PIX"],["EQMG AGRICULTURA E","2026-03-06","2026-03-06",2000.0,"PIX"],["Olivio Batistella Junior","2026-03-09","2026-03-09",4868.0,"PIX"],["WENDELL VIEIRA GARCIA","2026-03-09","2026-03-09",3450.0,"PIX"],["AGROPECUARIA AGUA VIVA","2026-03-09","2026-03-09",2805.34,"PIX"],["AGROPECUARIA AGUA VIVA","2026-03-09","2026-03-09",2000.0,"PIX"],["NOGUEIRA AGROPECUARIA","2026-03-09","2026-03-09",25227.4,"PIX"],["MAURICIO CARDOSO TONHA","2026-03-09","2026-03-09",41407.5,"PIX"],["GERALDO SAVIO DA SILVA","2026-03-10","2026-03-10",49103.8,"PIX"],["SEBASTIAO EDSON","2026-03-10","2026-03-10",4900.0,"PIX"],["JBS S/A","2026-03-10","2026-03-10",3957.64,"PIX"],["JBS S/A","2026-03-10","2026-03-10",14534.83,"PIX"],["JBS S/A","2026-03-10","2026-03-10",2254.46,"PIX"],["JBS S/A","2026-03-10","2026-03-10",3458.25,"PIX"],["JBS S/A","2026-03-11","2026-03-11",8888.11,"PIX"],["JOSE CARLOS DUARTE DA","2026-03-11","2026-03-11",14472.59,"PIX"],["MAURICIO CARDOSO TONHA","2026-03-12","2026-03-12",8484.37,"PIX"],["MAURICIO CARDOSO TONHA","2026-03-12","2026-03-12",4500.0,"PIX"],["JONIO AQUINO BALBINO","2026-03-12","2026-03-12",7200.0,"PIX"],["ANDRE DE MORAES ZUCATO","2026-03-12","2026-03-12",26600.0,"PIX"],["WELITON FILHO FREITAS","2026-03-12","2026-03-12",8970.0,"PIX"],["REONILDO DANIEL PRANTE","2026-03-12","2026-03-12",8000.0,"PIX"],["ANDRE DE MORAES ZUCATO","2026-03-12","2026-03-12",20574.3,"PIX"],["JBS CONFINAMENTO LTDA","2026-03-12","2026-03-12",52345.0,"PIX"],["JBS CONFINAMENTO LTDA","2026-03-12","2026-03-12",44000.0,"PIX"],["JBS CONFINAMENTO LTDA","2026-03-12","2026-03-12",4000.0,"PIX"],["JBS CONFINAMENTO LTDA","2026-03-12","2026-03-12",8000.0,"PIX"],["JBS CONFINAMENTO LTDA","2026-03-12","2026-03-12",20000.0,"PIX"],["CARLOS ALBERTO MOREIRA","2026-03-12","2026-03-12",9700.0,"PIX"],["LUIZ CARLOS MONTEIRO","2026-03-12","2026-03-12",12000.0,"PIX"],["RAFAEL NASCIMENTO MAIA","2026-03-12","2026-03-12",17669.02,"PIX"],["Maildo Alves Ferreira","2026-03-12","2026-03-12",14625.65,"PIX"],["JBS S/A","2026-03-13","2026-03-13",6193.1,"PIX"],["JBS SA","2026-03-13","2026-03-13",21829.27,"PIX"],["JBS SA","2026-03-13","2026-03-13",31890.5,"PIX"],["JOSE TONTIM DOS SANTOS E","2026-03-13","2026-03-13",14880.0,"PIX"],["ANTONIO CARLOS BISPO DE","2026-03-13","2026-03-13",2000.0,"PIX"],["EVARISTO TAGLIARI NETO E","2026-03-13","2026-03-13",56447.45,"PIX"],["AGROPECUARIA CHAPADA","2026-03-16","2026-03-16",67237.67,"PIX"],["Agropecuaria Fazenda Serra","2026-03-16","2026-03-16",5326.45,"PIX"],["ANGELO FURQUIM CABRAL","2026-03-16","2026-03-16",8620.54,"PIX"],["THAIS MICHELE GOULART E","2026-03-16","2026-03-16",5453.2,"PIX"],["TITO ELIAS BERNI E OUTRO","2026-03-16","2026-03-16",10350.0,"PIX"],["JBS SA","2026-03-17","2026-03-17",53663.8,"PIX"],["ANTONIO MEDEIROS E","2026-03-17","2026-03-17",8000.0,"PIX"],["BRENNO DE CAMARGO","2026-03-17","2026-03-17",7500.0,"PIX"],["JBS S/A","2026-03-17","2026-03-17",8717.89,"PIX"],["JBS S/A","2026-03-17","2026-03-17",2637.5,"PIX"],["JBS S/A","2026-03-17","2026-03-17",5442.42,"PIX"],["ANDRE DE MORAES ZUCATO","2026-03-18","2026-03-18",12000.0,"PIX"],["MAURICIO CARDOSO TONHA","2026-03-19","2026-03-19",15901.75,"PIX"],["THAIS MICHELE GOULART E","2026-03-19","2026-03-19",4885.54,"PIX"],["ROBSON FERNANDO","2026-03-19","2026-03-19",4940.27,"PIX"],["JBS SA","2026-03-19","2026-03-19",8501.26,"PIX"],["TITO ELIAS BERNI E OUTRO","2026-03-20","2026-03-20",3200.0,"PIX"],["JBS S/A","2026-03-20","2026-03-20",1063.32,"PIX"],["ANDRE DE MORAES ZUCATO","2026-03-20","2026-03-20",4360.95,"PIX"],["ANDRE DE MORAES ZUCATO","2026-03-20","2026-03-20",19356.4,"PIX"],["ANDRE DE MORAES ZUCATO","2026-03-20","2026-03-20",2700.0,"PIX"],["REONILDO DANIEL PRANTE","2026-03-20","2026-03-20",10476.89,"PIX"],["SEBASTIAO EDSON","2026-03-21","2026-03-21",28400.0,"PIX"],["ANDRE DE MORAES ZUCATO","2026-03-21","2026-03-21",8934.42,"PIX"],["JBS S/A","2026-03-23","2026-03-23",3559.37,"PIX"],["ADELMO BRIANEZI NETO","2026-03-23","2026-03-23",809.81,"PIX"],["ADELMO BRIANEZI NETO","2026-03-23","2026-03-23",30000.0,"PIX"],["ADELMO BRIANEZI NETO","2026-03-23","2026-03-23",20000.0,"PIX"],["WILSON JOSE DOS SANTOS E","2026-03-23","2026-03-23",1600.0,"PIX"],["JBS S/A","2026-03-23","2026-03-23",1985.76,"PIX"],["MANOEL CARLOS ALVES DA","2026-03-23","2026-03-23",4000.0,"PIX"],["SEBASTIAO EDSON","2026-03-23","2026-03-23",4000.0,"PIX"],["MAURICIO CARDOSO TONHA","2026-03-23","2026-03-23",3700.0,"PIX"],["BRENNO DE CAMARGO","2026-03-23","2026-03-23",3700.0,"PIX"],["ANDRE DE MORAES ZUCATO","2026-03-24","2026-03-24",7315.88,"PIX"],["JOSE PEREIRA DE PAULA","2026-03-24","2026-03-24",10999.0,"PIX"],["ANDRE DE MORAES ZUCATO","2026-03-24","2026-03-24",12000.0,"PIX"],["ANDRE DE MORAES ZUCATO","2026-03-24","2026-03-24",6773.12,"PIX"],["JBS SA","2026-03-25","2026-03-25",53684.32,"PIX"],["JBS CONFINAMENTO LTDA","2026-03-25","2026-03-25",3200.0,"PIX"],["JBS CONFINAMENTO LTDA","2026-03-25","2026-03-25",19200.0,"PIX"],["ADILSON LUIZ","2026-03-25","2026-03-25",1500.0,"PIX"],["ADILSON LUIZ","2026-03-25","2026-03-25",2500.0,"PIX"],["MAURICIO CARDOSO TONHA","2026-03-25","2026-03-25",8865.4,"PIX"],["ADELMO BRIANEZI NETO","2026-03-26","2026-03-26",3690.19,"PIX"],["ADELMO BRIANEZI NETO","2026-03-26","2026-03-26",15000.0,"PIX"],["ADELMO BRIANEZI NETO","2026-03-26","2026-03-26",6500.0,"PIX"],["JBS S/A","2026-03-26","2026-03-26",8942.79,"PIX"],["ANDRE DE MORAES ZUCATO","2026-03-26","2026-03-26",3757.11,"PIX"],["SERGIO EDUARDO RIBEIRO","2026-03-26","2026-03-26",17238.0,"PIX"],["ANDRE DE MORAES ZUCATO","2026-03-27","2026-03-27",33600.0,"PIX"],["Agropecuaria Fazenda Serra","2026-03-27","2026-03-27",6400.0,"PIX"],["ANDRE DE MORAES ZUCATO","2026-03-27","2026-03-27",4112.52,"PIX"],["THAIS MICHELE GOULART E","2026-03-28","2026-03-28",6348.95,"PIX"],["ANTONIO MEDEIROS E","2026-03-30","2026-03-30",27753.0,"PIX"],["SEBASTIAO EDSON","2026-03-30","2026-03-30",7859.79,"PIX"],["LEANDRO VALOES SOARES","2026-03-30","2026-03-30",24000.0,"PIX"],["JAIR ANTONIO BOGONI","2026-03-30","2026-03-30",6000.22,"PIX"],["THAIS MICHELE GOULART E","2026-03-30","2026-03-30",5174.25,"PIX"],["WELITON FILHO FREITAS","2026-03-30","2026-03-30",3976.95,"PIX"],["ANDRE DE MORAES ZUCATO","2026-03-31","2026-03-31",10072.66,"PIX"],["ANDRE DE MORAES ZUCATO","2026-04-01","2026-04-01",61555.0,"PIX"],["ANDRE DE MORAES ZUCATO","2026-04-01","2026-04-01",183880.0,"PIX"],["WELINGTON BRASIL","2026-04-01","2026-04-01",24984.02,"PIX"],["ANDRE DE MORAES ZUCATO","2026-04-01","2026-04-01",27492.54,"PIX"],["ANDRE DE MORAES ZUCATO","2026-04-01","2026-04-01",4267.0,"PIX"],["ANDRE DE MORAES ZUCATO","2026-04-01","2026-04-01",11116.5,"PIX"],["SEBASTIAO EDSON","2026-04-01","2026-04-01",12800.0,"PIX"],["JBS SA","2026-04-01","2026-04-01",20150.1,"PIX"],["MANOEL CARLOS ALVES DA","2026-04-02","2026-04-02",6440.0,"PIX"],["THALISSON JACOBSEN SEIBT","2026-04-02","2026-04-02",7695.5,"PIX"],["JBS SA","2026-04-02","2026-04-02",53277.45,"PIX"],["SEBASTIAO EDSON","2026-04-02","2026-04-02",4400.0,"PIX"],["ADELMO BRIANEZI NETO","2026-04-04","2026-04-04",3584.0,"PIX"],["ADELMO BRIANEZI NETO","2026-04-04","2026-04-04",15000.0,"PIX"],["ADELMO BRIANEZI NETO","2026-04-04","2026-04-04",5000.0,"PIX"],["ADELMO BRIANEZI NETO","2026-04-04","2026-04-04",5000.0,"PIX"],["ADELMO BRIANEZI NETO","2026-04-04","2026-04-04",2500.0,"PIX"],["ADELMO BRIANEZI NETO","2026-04-04","2026-04-04",8000.0,"PIX"],["ADELMO BRIANEZI NETO","2026-04-04","2026-04-04",2500.0,"PIX"],["ADELMO BRIANEZI NETO","2026-04-04","2026-04-04",5000.0,"PIX"],["ADELMO BRIANEZI NETO","2026-04-04","2026-04-04",4000.0,"PIX"],["ALCIDIR DA CUNHA","2026-04-06","2026-04-06",13015.37,"PIX"],["ANTONIO GILBERTO RIBEIRO","2026-04-06","2026-04-06",20063.78,"PIX"],["NIVALDO FELIPE GUERREIRO","2026-04-06","2026-04-06",30000.0,"PIX"],["ANDRE DE MORAES ZUCATO","2026-04-07","2026-04-07",130157.5,"PIX"],["NILSON ANTONIO ZANOTTO","2026-04-08","2026-04-08",11100.0,"PIX"],["JBS SA","2026-04-08","2026-04-08",22774.47,"PIX"],["JBS SA","2026-04-09","2026-04-09",37957.45,"PIX"],["LUIZ CARLOS MONTEIRO","2026-04-09","2026-04-09",12387.48,"PIX"],["TRANSPORTES 4 PATAS","2026-04-09","2026-04-09",19148.16,"PIX"],["ANDRE DE MORAES ZUCATO","2026-04-10","2026-04-10",166310.05,"PIX"],["EDER DE CARVALHO GODA","2026-04-10","2026-04-10",7925.0,"PIX"],["ANDRE DE MORAES ZUCATO","2026-04-10","2026-04-10",8998.31,"PIX"],["JBS CONFINAMENTO LTDA","2026-04-10","2026-04-10",12256.0,"PIX"],["SEBASTIAO EDSON","2026-04-10","2026-04-10",13770.0,"PIX"],["JOSE VITOR DE OLIVEIRA","2026-04-10","2026-04-10",11100.0,"PIX"],["VASCO MIL HOMENS","2026-04-10","2026-04-10",3000.0,"PIX"],["FAMMA AGROPECUARIA","2026-04-11","2026-04-11",16933.82,"PIX"],["ANDRE DE MORAES ZUCATO","2026-04-14","2026-04-14",43166.49,"PIX"],["WELINGTON BRASIL","2026-04-14","2026-04-14",14230.0,"PIX"],["JBS SA","2026-04-14","2026-04-14",12819.36,"PIX"],["SEBASTIAO EDSON","2026-04-15","2026-04-15",4400.0,"PIX"],["JBS S/A","2026-04-15","2026-04-15",1107.3,"PIX"],["CARLOS ALBERTO MOREIRA","2026-04-15","2026-04-15",9747.75,"PIX"],["VASCO MIL HOMENS","2026-04-15","2026-04-15",1500.0,"PIX"],["RODOLFO WILSON MARTINS","2026-04-16","2026-04-16",5455.0,"PIX"],["OSMAIR LEANDRO GOVEIA","2026-04-16","2026-04-16",4000.0,"PIX"],["WELITON FILHO FREITAS","2026-04-16","2026-04-16",7000.0,"PIX"],["JBS SA","2026-04-16","2026-04-16",37957.45,"PIX"],["LEANDRO PINTO DA SILVA E","2026-04-16","2026-04-16",54740.0,"PIX"],["THAIS MICHELE GOULART E","2026-04-17","2026-04-17",6339.66,"PIX"],["REONILDO DANIEL PRANTE","2026-04-17","2026-04-17",27285.83,"PIX"],["Agropecuaria Fazenda Serra","2026-04-18","2026-04-18",8800.0,"PIX"],["MANOEL CARLOS ALVES DA","2026-04-18","2026-04-18",4200.0,"PIX"],["SEBASTIAO EDSON","2026-04-18","2026-04-18",18900.0,"PIX"],["ADELMO BRIANEZI NETO","2026-04-18","2026-04-18",4796.0,"PIX"],["ADELMO BRIANEZI NETO","2026-04-18","2026-04-18",9500.0,"PIX"],["ADELMO BRIANEZI NETO","2026-04-18","2026-04-18",6500.0,"PIX"],["ADELMO BRIANEZI NETO","2026-04-18","2026-04-18",4500.0,"PIX"],["JBS SA","2026-04-18","2026-04-18",22819.6,"PIX"],["LEANDRO PINTO DA SILVA E","2026-04-20","2026-04-20",7820.0,"PIX"],["LEANDRO PINTO DA SILVA E","2026-04-20","2026-04-20",7820.0,"PIX"],["LEANDRO PINTO DA SILVA E","2026-04-20","2026-04-20",7820.0,"PIX"],["MANOEL CARLOS ALVES DA","2026-04-20","2026-04-20",8800.0,"PIX"],["SERGIO AMARAL DE","2026-04-20","2026-04-20",10300.0,"PIX"],["MAURICIO CARDOSO TONHA","2026-04-20","2026-04-20",5000.0,"PIX"],["DANIEL BARBOZA ROSA -","2026-04-20","2026-04-20",4558.0,"PIX"],["ADILSON LUIZ","2026-04-20","2026-04-20",18500.0,"PIX"],["ADILSON LUIZ","2026-04-20","2026-04-20",9500.0,"PIX"],["ANA LUCIA CORDESCHI","2026-04-20","2026-04-20",8000.0,"PIX"],["VICTOR ANTUNES DE SOUZA","2026-04-22","2026-04-22",8000.0,"PIX"],["SEBASTIAO EDSON","2026-04-22","2026-04-22",8000.0,"PIX"],["REONILDO DANIEL PRANTE","2026-04-22","2026-04-22",10748.88,"PIX"],["ANDRE DE MORAES ZUCATO","2026-04-22","2026-04-22",4963.5,"PIX"],["ANTONIO TRENTO KIHARA","2026-04-22","2026-04-22",42974.52,"PIX"],["GABRIEL GANDOLFI DUTRA","2026-04-22","2026-04-22",8209.0,"PIX"],["JBS SA","2026-04-22","2026-04-22",30360.37,"PIX"],["FERNANDO MORAES E","2026-04-22","2026-04-22",6498.25,"PIX"],["SIMONE MARCHESI","2026-04-23","2026-04-23",4400.0,"PIX"],["SEBASTIAO EDSON","2026-04-23","2026-04-23",5200.0,"PIX"],["THAIS MICHELE GOULART E","2026-04-23","2026-04-23",5175.0,"PIX"],["Agropecuaria Fazenda Serra","2026-04-23","2026-04-23",8800.0,"PIX"],["ANDRE DE MORAES ZUCATO","2026-04-23","2026-04-23",6424.28,"PIX"],["ANDRE DE MORAES ZUCATO","2026-04-23","2026-04-23",10500.0,"PIX"],["JBS SA","2026-04-23","2026-04-23",30552.11,"PIX"],["MANOEL CARLOS ALVES DA","2026-04-24","2026-04-24",8280.0,"PIX"],["MANOEL CARLOS ALVES DA","2026-04-24","2026-04-24",70260.0,"PIX"],["THALISSON JACOBSEN SEIBT","2026-04-24","2026-04-24",2400.0,"PIX"],["LUIZ CARLOS MONTEIRO","2026-04-24","2026-04-24",6454.2,"PIX"],["JBJ AGROPECUARIA LTDA","2026-04-25","2026-04-25",12800.0,"PIX"],["PAULO RODRIGO TRENTINI","2026-04-27","2026-04-27",20000.0,"PIX"],["VALDIR GONCALVES DE","2026-04-27","2026-04-27",8800.0,"PIX"],["WELITON FILHO FREITAS","2026-04-27","2026-04-27",5299.93,"PIX"],["JOSE VIDAL DE OLIVEIRA","2026-04-27","2026-04-27",22674.6,"PIX"],["Agropecuaria Fazenda Serra","2026-04-28","2026-04-28",4400.0,"PIX"],["SEBASTIAO EDSON","2026-04-28","2026-04-28",3200.0,"PIX"],["ALADINO SELMI NETO","2026-04-28","2026-04-28",7000.0,"PIX"],["ANA LUCIA CORDESCHI","2026-04-29","2026-04-29",28000.0,"PIX"],["SEBASTIAO EDSON","2026-04-29","2026-04-29",24000.0,"PIX"],["SEBASTIAO EDSON","2026-04-29","2026-04-29",2100.0,"PIX"],["RODRIGO RAGIOTTO E","2026-04-29","2026-04-29",3500.0,"PIX"],["JBS SA","2026-04-30","2026-04-30",19310.93,"PIX"],["THAIS MICHELE GOULART E","2026-04-30","2026-04-30",6636.09,"PIX"],["SEBASTIAO EDSON","2026-04-30","2026-04-30",4000.0,"PIX"],["LUCIANO RUBIN FERRARI","2026-04-30","2026-04-30",22767.99,"PIX"],["ADELMO BRIANEZI NETO","2026-05-02","2026-05-02",3290.0,"PIX"],["ADELMO BRIANEZI NETO","2026-05-02","2026-05-02",5000.0,"PIX"],["ADELMO BRIANEZI NETO","2026-05-02","2026-05-02",5000.0,"PIX"],["ADELMO BRIANEZI NETO","2026-05-02","2026-05-02",3000.0,"PIX"],["ADELMO BRIANEZI NETO","2026-05-02","2026-05-02",6000.0,"PIX"],["ADELMO BRIANEZI NETO","2026-05-02","2026-05-02",3000.0,"PIX"],["WELITON FILHO FREITAS","2026-05-02","2026-05-02",3699.95,"PIX"],["MILTON VILELA DE","2026-05-04","2026-05-04",6000.0,"PIX"],["LUIZ CARLOS MONTEIRO","2026-05-04","2026-05-04",4385.33,"PIX"],["GILDO ANDRE CEB","2026-05-04","2026-05-04",15104.0,"PIX"],["GILDO ANDRE CEB","2026-05-04","2026-05-04",10958.0,"PIX"],["JBS SA","2026-05-04","2026-05-04",41434.86,"PIX"],["ANDRE DE MORAES ZUCATO","2026-05-05","2026-05-05",10196.08,"PIX"],["GABRIEL GALLO NETO","2026-05-06","2026-05-06",72100.0,"PIX"],["GABRIEL GALLO NETO","2026-05-06","2026-05-06",13700.0,"PIX"],["JBS SA","2026-05-07","2026-05-07",22777.88,"PIX"],["JBS SA","2026-05-07","2026-05-07",7592.63,"PIX"],["JBS SA","2026-05-07","2026-05-07",15185.26,"PIX"],["JBS SA","2026-05-07","2026-05-07",7592.63,"PIX"],["JBS SA","2026-05-07","2026-05-07",7592.63,"PIX"],["DARCE RAMALHO DOS","2026-05-07","2026-05-07",20000.0,"PIX"],["LUIZ CARLOS MONTEIRO","2026-05-08","2026-05-08",4400.0,"PIX"],["MILTON VILELA DE","2026-05-08","2026-05-08",9879.22,"PIX"],["WELITON FILHO FREITAS","2026-05-08","2026-05-08",7000.12,"PIX"],["GUILHERME PINEZZI","2026-05-08","2026-05-08",4566.84,"PIX"],["Agropecuaria Fazenda Serra","2026-05-08","2026-05-08",18770.06,"PIX"],["RODOLFO WILSON MARTINS","2026-05-08","2026-05-08",5463.0,"PIX"],["VINICIUS JOAO CURI","2026-05-08","2026-05-08",134842.16,"PIX"],["SILVANA G CORTI DI R DI C S","2026-05-08","2026-05-08",99033.53,"PIX"],["AGROPECUARIA DONA","2026-05-08","2026-05-08",32528.16,"PIX"],["SEBASTIAO EDSON","2026-05-08","2026-05-08",14400.0,"PIX"],["SEBASTIAO EDSON","2026-05-08","2026-05-08",42400.0,"PIX"],["ANTONIO APARECIDO","2026-05-08","2026-05-08",11100.0,"PIX"],["EDUARDO ZAGO MACHADO","2026-05-09","2026-05-09",7400.0,"PIX"],["TIAGO GRANDO E OUTRO","2026-05-11","2026-05-11",23360.0,"PIX"],["RICARDO LUIZ DA MOTA","2026-05-11","2026-05-11",1700.0,"PIX"],["IVAN SZELIGOWSKI RAMOS","2026-05-11","2026-05-11",5989.52,"PIX"],["JBJ AGROPECUARIA LTDA","2026-05-11","2026-05-11",26281.5,"PIX"],["JBJ AGROPECUARIA LTDA","2026-05-11","2026-05-11",4760.5,"PIX"],["Frigorifico Boi Mix Ltda","2026-05-11","2026-05-11",8977.3,"PIX"],["THAIS MICHELE GOULART E","2026-05-11","2026-05-11",15067.71,"PIX"],["ANDRE DE MORAES ZUCATO","2026-05-12","2026-05-12",2128.69,"PIX"],["ANDRE DE MORAES ZUCATO","2026-05-12","2026-05-12",70172.45,"PIX"],["CONFIANCA TRANSPORTES","2026-05-12","2026-05-12",3600.0,"PIX"],["MARIA CRISTINA MARTINS","2026-05-13","2026-05-13",18800.0,"PIX"],["ANDRE DE MORAES ZUCATO","2026-05-13","2026-05-13",67101.45,"PIX"],["ADELMO BRIANEZI NETO","2026-05-14","2026-05-14",25296.72,"PIX"],["JOSE VIDAL DE OLIVEIRA","2026-05-14","2026-05-14",22674.6,"PIX"],["SEBASTIAO EDSON","2026-05-14","2026-05-14",21600.0,"PIX"],["SEBASTIAO EDSON","2026-05-14","2026-05-14",3200.0,"PIX"],["JBS SA","2026-05-14","2026-05-14",22814.55,"PIX"],["JBS SA","2026-05-14","2026-05-14",38024.25,"PIX"],["MAURICIO CARDOSO TONHA","2026-05-14","2026-05-14",23686.02,"PIX"],["MAURICIO CARDOSO TONHA","2026-05-14","2026-05-14",3700.0,"PIX"],["JBJ AGROPECUARIA LTDA","2026-05-14","2026-05-14",6400.0,"PIX"],["REONILDO DANIEL PRANTE","2026-05-14","2026-05-14",5100.0,"PIX"],["JBS SA","2026-05-15","2026-05-15",35214.17,"PIX"],["Agropecuaria Fazenda Serra","2026-05-15","2026-05-15",8800.0,"PIX"],["JBS S/A","2026-05-15","2026-05-15",17064.05,"PIX"],["SILVANA G CORTI DI R DI C S","2026-05-15","2026-05-15",2565.0,"PIX"],["ANTONIO GILBERTO RIBEIRO","2026-05-18","2026-05-18",20063.78,"PIX"],["EVARISTO TAGLIARI NETO E","2026-05-18","2026-05-18",18292.0,"PIX"],["RODOLFO ABUD CABRERA","2026-05-18","2026-05-18",5000.0,"PIX"],["RODOLFO ABUD CABRERA","2026-05-18","2026-05-18",5000.0,"PIX"],["JBS SA","2026-05-18","2026-05-18",14284.01,"PIX"],["EDUARDO ZAGO MACHADO","2026-05-19","2026-05-19",17852.4,"PIX"],["UMBERTO RESENDE E","2026-05-20","2026-05-20",3000.0,"PIX"],["THAIS MICHELE GOULART E","2026-05-20","2026-05-20",6212.95,"PIX"],["SAMUEL ANTONIO","2026-05-20","2026-05-20",45000.0,"PIX"],["MFG Agropecuaria Ltda","2026-05-20","2026-05-20",52447.2,"PIX"],["GAGLIARDI REIS","2026-05-20","2026-05-20",6225.28,"PIX"],["SEVERINO CURTI NETO","2026-05-21","2026-05-21",8000.0,"PIX"],["JBS S/A","2026-05-21","2026-05-21",2880.0,"PIX"],["JBS S/A","2026-05-21","2026-05-21",24397.83,"PIX"],["SEBASTIAO EDSON","2026-05-21","2026-05-21",21045.51,"PIX"],["VALDECIR ALBERTO","2026-05-22","2026-05-22",44709.23,"PIX"],["AILTON JOSE MACHADO","2026-05-22","2026-05-22",7848.0,"PIX"],["SEBASTIAO EDSON","2026-05-22","2026-05-22",20400.0,"PIX"],["MANOEL CARLOS ALVES DA","2026-05-22","2026-05-22",29440.0,"PIX"],["MANOEL CARLOS ALVES DA","2026-05-22","2026-05-22",29440.0,"PIX"],["JBS SA","2026-05-23","2026-05-23",9313.5,"PIX"],["VALDECIR ALBERTO","2026-05-25","2026-05-25",4971.0,"PIX"],["ANDRE DE MORAES ZUCATO","2026-05-26","2026-05-26",36760.35,"PIX"],["SEBASTIAO EDSON","2026-05-26","2026-05-26",19540.18,"PIX"],["SEBASTIAO EDSON","2026-05-26","2026-05-26",6300.0,"PIX"],["Jose Izidoro Corso","2026-05-26","2026-05-26",85800.0,"PIX"],["MAURICIO CARDOSO TONHA","2026-05-27","2026-05-27",18400.0,"PIX"],["VINICIUS JOAO CURI","2026-05-27","2026-05-27",179444.89,"PIX"],["MANOEL CARLOS ALVES DA","2026-05-28","2026-05-28",7360.0,"PIX"],["MANOEL CARLOS ALVES DA","2026-05-28","2026-05-28",29440.0,"PIX"],["MANOEL CARLOS ALVES DA","2026-05-28","2026-05-28",5000.0,"PIX"],["MANOEL CARLOS ALVES DA","2026-05-28","2026-05-28",24000.0,"PIX"],["ANDRESSA ROBERTA","2026-05-28","2026-05-28",9720.0,"PIX"],["SEBASTIAO EDSON","2026-05-28","2026-05-28",7400.0,"PIX"],["SILVANA G CORTI DI R DI C S","2026-05-28","2026-05-28",13015.0,"PIX"],["ADILSON LUIZ","2026-05-28","2026-05-28",1000.0,"PIX"],["ADILSON LUIZ","2026-05-28","2026-05-28",2000.0,"PIX"],["ADILSON LUIZ","2026-05-28","2026-05-28",8000.0,"PIX"],["ADILSON LUIZ","2026-05-28","2026-05-28",4000.0,"PIX"],["DANIEL BARBOZA ROSA -","2026-05-28","2026-05-28",4558.0,"PIX"],["ADELMO BRIANEZI NETO","2026-05-28","2026-05-28",4400.0,"PIX"],["ADELMO BRIANEZI NETO","2026-05-28","2026-05-28",17000.0,"PIX"],["ADELMO BRIANEZI NETO","2026-05-28","2026-05-28",4000.0,"PIX"],["MANOEL CARLOS ALVES DA","2026-05-28","2026-05-28",22080.0,"PIX"],["JBS SA","2026-05-28","2026-05-28",7592.63,"PIX"],["JBS SA","2026-05-28","2026-05-28",53101.28,"PIX"],["VALDECIR ALBERTO","2026-05-28","2026-05-28",19523.55,"PIX"],["ANDRE DE MORAES ZUCATO","2026-05-29","2026-05-29",25553.71,"PIX"],["MANOEL CARLOS ALVES DA","2026-05-29","2026-05-29",8960.0,"PIX"],["SEBASTIAO EDSON","2026-05-29","2026-05-29",2100.0,"PIX"],["SEBASTIAO EDSON","2026-05-29","2026-05-29",7400.0,"PIX"],["FELIPE SIMONINI","2026-05-29","2026-05-29",4346.14,"PIX"],["ANTONIO GILBERTO RIBEIRO","2026-05-29","2026-05-29",23975.29,"PIX"],["CHOU HSIU I E OUTROS","2026-05-30","2026-05-30",42828.0,"PIX"],["ALEXANDRE RONDON","2026-05-30","2026-05-30",10086.0,"PIX"],["GAGLIARDI REIS","2026-05-30","2026-05-30",8080.0,"PIX"],["MONTE ALEGRE FAZENDAS","2026-05-30","2026-05-30",3700.0,"PIX"],["MANOEL CARLOS ALVES DA","2026-05-30","2026-05-30",7360.0,"PIX"],["MANOEL CARLOS ALVES DA","2026-05-30","2026-05-30",8960.0,"PIX"],["SIMONE MARCHESI","2026-06-01","2026-06-01",8837.0,"PIX"],["WELITON FILHO FREITAS","2026-06-01","2026-06-01",6000.0,"PIX"],["HELIO RODOLFO","2026-06-01","2026-06-01",19200.0,"PIX"],["HELIO RODOLFO","2026-06-01","2026-06-01",19200.0,"PIX"],["HELIO RODOLFO","2026-06-01","2026-06-01",19200.0,"PIX"],["ADILSON LUIZ","2026-06-01","2026-06-01",2700.0,"PIX"],["MANOEL CARLOS ALVES DA","2026-06-01","2026-06-01",6400.0,"PIX"],["SEBASTIAO EDSON","2026-06-01","2026-06-01",2400.0,"PIX"],["SEBASTIAO EDSON","2026-06-01","2026-06-01",600.0,"PIX"],["COLPAR PARTICIPACOES S/A","2026-06-01","2026-06-01",18750.0,"PIX"],["COLPAR PARTICIPACOES S/A","2026-06-01","2026-06-01",11250.0,"PIX"],["MAURICIO CARDOSO TONHA","2026-06-02","2026-06-02",8390.32,"PIX"],["JAIR ANTONIO BOGONI","2026-06-02","2026-06-02",5353.15,"PIX"],["JBS SA","2026-06-03","2026-06-03",22745.11,"PIX"],["SIMONE MARCHESI","2026-06-03","2026-06-03",8800.0,"PIX"],["MANOEL CARLOS ALVES DA","2026-06-03","2026-06-03",22400.0,"PIX"],["ANDRE DE MORAES ZUCATO","2026-06-05","2026-06-05",50440.0,"PIX"],["JBS SA","2026-06-05","2026-06-05",11785.91,"PIX"],["JBS SA","2026-06-05","2026-06-05",10051.8,"PIX"],["VALDECIR ALBERTO","2026-06-06","2026-06-06",18515.3,"PIX"],["GUILHERME PINEZZI","2026-06-06","2026-06-06",5500.0,"PIX"],["MILTON VILELA DE","2026-06-06","2026-06-06",5500.0,"PIX"],["ANTONIO APARECIDO","2026-06-08","2026-06-08",8800.0,"PIX"],["PAULO RODRIGUES DA","2026-06-08","2026-06-08",4400.0,"PIX"],["SEBASTIAO EDSON","2026-06-08","2026-06-08",5400.0,"PIX"],["SEBASTIAO EDSON","2026-06-08","2026-06-08",4400.0,"PIX"],["MANOEL CARLOS ALVES DA","2026-06-08","2026-06-08",8000.0,"PIX"],["MANOEL CARLOS ALVES DA","2026-06-08","2026-06-08",4000.0,"PIX"],["MARIA CRISTINA MARTINS","2026-06-08","2026-06-08",4400.0,"PIX"],["SAUL DOS REIS CAMARGO","2026-06-08","2026-06-08",8889.4,"PIX"],["JBS SA","2026-06-09","2026-06-09",7007.26,"PIX"],["ANDRE DE MORAES ZUCATO","2026-06-09","2026-06-09",13636.2,"PIX"],["ANDRE DE MORAES ZUCATO","2026-06-09","2026-06-09",31525.0,"PIX"],["JBS SA","2026-06-10","2026-06-10",38007.29,"PIX"],["JBS SA","2026-06-10","2026-06-10",22753.5,"PIX"],["ANDRE DE MORAES ZUCATO","2026-06-10","2026-06-10",13200.0,"PIX"],["RICARDO ROMERO PIRES E","2026-06-10","2026-06-10",9154.26,"PIX"],["JBS SA","2026-06-11","2026-06-11",37955.31,"PIX"],["MANOEL CARLOS ALVES DA","2026-06-11","2026-06-11",2800.0,"PIX"],["SEBASTIAO EDSON","2026-06-11","2026-06-11",6400.0,"PIX"],["ANTONIO FRANGE JUNIOR","2026-06-11","2026-06-11",19313.0,"PIX"],["SEBASTIAO EDSON","2026-06-12","2026-06-12",23265.97,"PIX"],["SILVANA G CORTI DI R DI C S","2026-06-12","2026-06-12",2500.0,"PIX"],["ADELMO BRIANEZI NETO","2026-06-12","2026-06-12",25410.18,"PIX"],["ANDRE DE MORAES ZUCATO","2026-06-12","2026-06-12",208159.97,"PIX"],["ANDRE DE MORAES ZUCATO","2026-06-12","2026-06-12",22636.5,"PIX"],["ANDRE DE MORAES ZUCATO","2026-06-12","2026-06-12",39290.94,"PIX"],["VINICIUS JOAO CURI","2026-06-12","2026-06-12",48916.59,"PIX"],["RODRIGO RAGIOTTO E","2026-06-15","2026-06-15",9500.0,"PIX"],["JBS SA","2026-06-15","2026-06-15",1834.31,"PIX"],["JBS SA","2026-06-15","2026-06-15",53382.53,"PIX"],["Vanessa Machado Oliveira","2026-06-15","2026-06-15",16000.0,"PIX"],["JOSE VIDAL DE OLIVEIRA","2026-06-15","2026-06-15",44928.0,"PIX"],["ANDRE DE MORAES ZUCATO","2026-06-15","2026-06-15",12600.0,"PIX"],["ADILSON LUIZ","2026-06-15","2026-06-15",9600.0,"PIX"],["Candido Roberto de Almeida","2026-06-15","2026-06-15",7000.0,"PIX"],["GAGLIARDI REIS","2026-06-15","2026-06-15",17011.28,"PIX"],["Candido Roberto de Almeida","2026-06-17","2026-06-17",172.0,"PIX"],["JBS SA","2026-06-17","2026-06-17",6413.59,"PIX"],["WELITON FILHO FREITAS","2026-06-17","2026-06-17",11238.0,"PIX"],["WELITON FILHO FREITAS","2026-06-17","2026-06-17",9600.0,"PIX"],["WANDER CARLOS DE SOUZA","2026-06-17","2026-06-17",62523.4,"PIX"],["SILVANA G CORTI DI R DI C S","2026-06-17","2026-06-17",1700.0,"PIX"],["SEBASTIAO EDSON","2026-06-18","2026-06-18",4400.0,"PIX"],["SEBASTIAO EDSON","2026-06-18","2026-06-18",3400.0,"PIX"],["SEBASTIAO EDSON","2026-06-18","2026-06-18",7700.0,"PIX"],["ANDRE DE MORAES ZUCATO","2026-06-18","2026-06-18",13377.24,"PIX"],["ANDRE DE MORAES ZUCATO","2026-06-18","2026-06-18",4831.07,"PIX"],["ANDRE DE MORAES ZUCATO","2026-06-18","2026-06-18",21000.0,"PIX"],["JBS SA","2026-06-18","2026-06-18",30343.59,"PIX"],["WELITON FILHO FREITAS","2026-06-19","2026-06-19",4200.0,"PIX"],["JBS SA","2026-06-19","2026-06-19",15178.53,"PIX"],["MANOEL CARLOS ALVES DA","2026-06-20","2026-06-20",12960.0,"PIX"],["Agropecuaria Fazenda Serra","2026-06-20","2026-06-20",4400.0,"PIX"],["MAURICIO CARDOSO TONHA","2026-06-20","2026-06-20",10156.73,"PIX"],["MARIA CRISTINA MARTINS","2026-06-22","2026-06-22",2700.0,"PIX"],["CARLOS ALBERTO POLATO","2026-06-22","2026-06-22",1500.0,"PIX"],["CARLOS ALBERTO POLATO","2026-06-22","2026-06-22",63923.6,"PIX"],["JBS SA","2026-06-22","2026-06-22",15178.53,"PIX"],["HEITOR CAMPOS GENEIRO E","2026-06-24","2026-06-24",11145.75,"PIX"],["CARLOS HENRIQUE SIMOES","2026-06-24","2026-06-24",6349.84,"PIX"],["MAURICIO CARDOSO TONHA","2026-06-24","2026-06-24",12757.3,"PIX"],["SEBASTIAO EDSON","2026-06-24","2026-06-24",114757.31,"PIX"],["JBS SA","2026-06-24","2026-06-24",53003.09,"PIX"],["JBS SA","2026-06-24","2026-06-24",8486.27,"PIX"],["JBS SA","2026-06-24","2026-06-24",2259.06,"PIX"],["JBS SA","2026-06-24","2026-06-24",5405.21,"PIX"],["Barra Alimentos Ltda","2026-06-24","2026-06-24",2792.0,"PIX"],["JULIO GALLO","2026-06-24","2026-06-24",4500.0,"PIX"],["SEBASTIAO EDSON","2026-06-24","2026-06-24",1700.0,"PIX"],["SEBASTIAO EDSON","2026-06-24","2026-06-24",6800.0,"PIX"],["SEBASTIAO EDSON","2026-06-24","2026-06-24",19956.18,"PIX"],["MARCELO CAETANO DINES","2026-06-25","2026-06-25",14729.12,"PIX"],["JBS S/A","2026-06-25","2026-06-25",28523.18,"PIX"],["ANDRE DE MORAES ZUCATO","2026-06-25","2026-06-25",12800.0,"PIX"],["ANDRE DE MORAES ZUCATO","2026-06-25","2026-06-25",40429.0,"PIX"],["ANDRE DE MORAES ZUCATO","2026-06-25","2026-06-25",14776.0,"PIX"],["JBS SA","2026-06-26","2026-06-26",2706.84,"PIX"],["JBS SA","2026-06-26","2026-06-26",22911.97,"PIX"],["JBS SA","2026-06-26","2026-06-26",5402.84,"PIX"],["JBS SA","2026-06-26","2026-06-26",36369.51,"PIX"],["SANDRA APARECIDA","2026-06-26","2026-06-26",9894.0,"PIX"],["MONTE ALEGRE FAZENDAS","2026-06-26","2026-06-26",5500.0,"PIX"],["JBS SA","2026-06-27","2026-06-27",9967.39,"PIX"],["WELITON FILHO FREITAS","2026-06-29","2026-06-29",3800.0,"PIX"],["JOSE SILVA DOMBROSKI","2026-06-30","2026-06-30",7400.0,"PIX"]];
+</script>
+<script>
+/* ===================== SAFETY POLYFILL ===================== */
+/* Some browsers/webviews lack ResizeObserver; Chart.js needs it for responsive:true.
+   Without this guard, a missing ResizeObserver throws on the first chart and silently
+   blocks every chart rendered after it. */
+if (typeof window.ResizeObserver === 'undefined') {
+  window.ResizeObserver = class {
+    observe(){} unobserve(){} disconnect(){}
+  };
+}
+
+/* ===================== SETUP ===================== */
+const TODAY = new Date();
+TODAY.setHours(0,0,0,0);
+const MESES = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+const MESES_FULL = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+
+const PALETTE = ['#FF9F1C','#3D7EA6','#0E2A47','#2E8B57','#D9A441','#8E6C88','#5B8C5A','#C9573A','#6D8EA0','#B08968'];
+
+function fmtBRL(v){
+  return v.toLocaleString('pt-BR',{style:'currency',currency:'BRL',maximumFractionDigits:0});
+}
+function fmtBRLfull(v){
+  return v.toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+}
+function fmtDateBR(iso){
+  if(!iso) return '—';
+  const [y,m,d] = iso.split('-');
+  return `${d}/${m}/${y}`;
+}
+function titleCase(s){
+  return s.toLowerCase().replace(/(^|\s)\S/g, c => c.toUpperCase());
+}
+
+/* RAW_DATA rows: [cliente, vcto, emissao, valor, forma] */
+const DATA = RAW_DATA.map(r => ({
+  cliente: titleCase(r[0].trim()),
+  vcto: r[1],
+  emissao: r[2],
+  valor: r[3],
+  forma: r[4] ? r[4].trim() : 'Outro',
+  ano: parseInt(r[1].slice(0,4)),
+  mes: parseInt(r[1].slice(5,7)),
+}));
+
+const ANOS = [...new Set(DATA.map(d=>d.ano))].sort();
+const CLIENTES = [...new Set(DATA.map(d=>d.cliente))].sort();
+
+/* ===================== HEADER META ===================== */
+document.getElementById('metaGerado').textContent = 'Gerado em ' + TODAY.toLocaleDateString('pt-BR');
+const minVcto = DATA.reduce((m,d)=> d.vcto<m?d.vcto:m, DATA[0].vcto);
+const maxVcto = DATA.reduce((m,d)=> d.vcto>m?d.vcto:m, DATA[0].vcto);
+document.getElementById('metaPeriodo').textContent = `Base: ${fmtDateBR(minVcto)} — ${fmtDateBR(maxVcto)}`;
+document.getElementById('refDateTag').textContent = TODAY.toLocaleDateString('pt-BR');
+
+/* ===================== FILTER OPTIONS ===================== */
+const selAno = document.getElementById('fAno');
+ANOS.forEach(a=>{
+  const o = document.createElement('option'); o.value=a; o.textContent=a; selAno.appendChild(o);
+});
+const selMes = document.getElementById('fMes');
+MESES_FULL.forEach((m,i)=>{
+  const o = document.createElement('option'); o.value=i+1; o.textContent=m; selMes.appendChild(o);
+});
+const msToggle = document.getElementById('msToggle');
+const msToggleLabel = document.getElementById('msToggleLabel');
+const msPanel = document.getElementById('msPanel');
+const msSearch = document.getElementById('msSearch');
+const msList = document.getElementById('msList');
+
+function buildMsList(filterText){
+  const q = (filterText||'').toLowerCase().trim();
+  const items = q ? CLIENTES.filter(c=>c.toLowerCase().includes(q)) : CLIENTES;
+  if(items.length===0){
+    msList.innerHTML = '<div class="ms-empty">Nenhum cliente encontrado</div>';
+    return;
+  }
+  msList.innerHTML = items.map(c=>{
+    const checked = state.clientes.includes(c) ? 'checked' : '';
+    const id = 'ms_'+btoa(unescape(encodeURIComponent(c))).replace(/[^a-zA-Z0-9]/g,'');
+    return `<label class="ms-row" for="${id}">
+      <input type="checkbox" id="${id}" value="${c.replace(/"/g,'&quot;')}" ${checked}>
+      <span>${c}</span>
+    </label>`;
+  }).join('');
+  msList.querySelectorAll('input[type=checkbox]').forEach(cb=>{
+    cb.addEventListener('change', ()=>{
+      const v = cb.value;
+      if(cb.checked){ if(!state.clientes.includes(v)) state.clientes.push(v); }
+      else { state.clientes = state.clientes.filter(x=>x!==v); }
+      updateMsLabel();
+      render();
+    });
+  });
+}
+function updateMsLabel(){
+  if(state.clientes.length===0) msToggleLabel.textContent = 'Todos os clientes';
+  else if(state.clientes.length===1) msToggleLabel.textContent = state.clientes[0];
+  else msToggleLabel.textContent = `${state.clientes.length} clientes selecionados`;
+}
+msToggle.addEventListener('click', ()=>{
+  const isHidden = msPanel.hasAttribute('hidden');
+  if(isHidden){ msPanel.removeAttribute('hidden'); buildMsList(''); msSearch.value=''; msSearch.focus(); }
+  else msPanel.setAttribute('hidden','');
+});
+document.addEventListener('click', (e)=>{
+  if(!msPanel.contains(e.target) && e.target!==msToggle && !msToggle.contains(e.target)){
+    msPanel.setAttribute('hidden','');
+  }
+});
+msSearch.addEventListener('input', ()=> buildMsList(msSearch.value));
+document.getElementById('msSelectAll').addEventListener('click', ()=>{
+  state.clientes = CLIENTES.slice();
+  updateMsLabel(); buildMsList(msSearch.value); render();
+});
+document.getElementById('msClear').addEventListener('click', ()=>{
+  state.clientes = [];
+  updateMsLabel(); buildMsList(msSearch.value); render();
+});
+
+/* ===================== STATE ===================== */
+let state = { ano:'', mes:'', clientes:[] };
+let recSort = { key:'dias', dir:'desc' };
+
+function applyFilters(rows){
+  return rows.filter(d=>
+    (state.ano==='' || d.ano===Number(state.ano)) &&
+    (state.mes==='' || d.mes===Number(state.mes)) &&
+    (state.clientes.length===0 || state.clientes.includes(d.cliente))
+  );
+}
+
+/* ===================== CHART INSTANCES ===================== */
+let chEvolucao, chTop10, chHistorico, chForma, chAbc, chSazonal, chRfv, chPerdido, chTendencia, chTicketSeg;
+
+const chartFont = { family:"'Inter',sans-serif", size:11 };
+Chart.defaults.font.family = "'Inter',sans-serif";
+Chart.defaults.color = '#69758A';
+
+/* ===================== RENDER PIPELINE ===================== */
+function safe(fn, label){
+  try { fn(); }
+  catch(err){ console.error(`[dashboard] falha ao renderizar ${label}:`, err); }
+}
+
+function render(){
+  const scoped = applyFilters(DATA); // respects ano/mes/clientes
+  safe(()=>renderKpis(scoped), 'KPIs');
+  safe(()=>renderKpiDelta(), 'variação mensal');
+  safe(()=>renderConcentracao(scoped), 'concentração de risco');
+  safe(()=>renderEvolucao(scoped), 'evolução mensal');
+  safe(()=>renderTop10(scoped), 'top 10 clientes');
+  safe(()=>renderHistorico(), 'histórico do cliente');
+  safe(()=>renderForma(scoped), 'forma de recebimento');
+  safe(()=>renderTendencia(), 'tendência de crescimento/queda');
+  safe(()=>renderRecencia(), 'recência');
+  safe(()=>renderPrioridade(), 'prioridade de contato');
+  safe(()=>renderHeatmap(), 'mapa de calor');
+  safe(()=>renderPerdido(), 'faturamento potencial perdido');
+  safe(()=>renderAbc(scoped), 'curva ABC');
+  safe(()=>renderSazonal(), 'sazonalidade');
+  safe(()=>renderRfv(), 'matriz RFV');
+}
+
+/* ---------- KPIs ---------- */
+function renderKpis(rows){
+  const total = rows.reduce((s,d)=>s+d.valor,0);
+  const clientesAtivos = new Set(rows.map(d=>d.cliente)).size;
+  const ticket = rows.length ? total/rows.length : 0;
+
+  document.getElementById('kpiTotal').textContent = fmtBRL(total);
+  document.getElementById('kpiTotalNote').textContent = `${rows.length.toLocaleString('pt-BR')} faturas no período`;
+  document.getElementById('kpiClientes').textContent = clientesAtivos.toLocaleString('pt-BR');
+  document.getElementById('kpiTicket').textContent = fmtBRL(ticket);
+  document.getElementById('kpiTicketNote').textContent = `${rows.length ? (rows.length/Math.max(clientesAtivos,1)).toFixed(1) : 0} faturas / cliente`;
+
+  const byClient = {};
+  rows.forEach(d=> byClient[d.cliente] = (byClient[d.cliente]||0) + d.valor);
+  const top = Object.entries(byClient).sort((a,b)=>b[1]-a[1])[0];
+  if(top){
+    document.getElementById('kpiTop').textContent = top[0].length>26 ? top[0].slice(0,24)+'…' : top[0];
+    const share = total ? (top[1]/total*100) : 0;
+    document.getElementById('kpiTopNote').textContent = `${fmtBRL(top[1])} · ${share.toFixed(1)}% do total`;
+  } else {
+    document.getElementById('kpiTop').textContent = '—';
+    document.getElementById('kpiTopNote').textContent = '—';
+  }
+}
+
+/* ---------- Variação mês vs mês anterior ---------- */
+function computeMoM(){
+  const base = state.clientes.length ? DATA.filter(d=>state.clientes.includes(d.cliente)) : DATA;
+  let pool = base;
+  if(state.ano) pool = pool.filter(d=>d.ano===Number(state.ano));
+  let refYear, refMonth;
+  if(state.ano && state.mes){
+    refYear = Number(state.ano); refMonth = Number(state.mes);
+  } else {
+    if(pool.length===0) return null;
+    const maxKey = pool.reduce((m,d)=>{ const k=d.ano*100+d.mes; return k>m?k:m; }, 0);
+    refYear = Math.floor(maxKey/100); refMonth = maxKey%100;
+  }
+  let prevYear = refYear, prevMonth = refMonth-1;
+  if(prevMonth===0){ prevMonth=12; prevYear-=1; }
+  const curTotal = base.filter(d=>d.ano===refYear && d.mes===refMonth).reduce((s,d)=>s+d.valor,0);
+  const prevTotal = base.filter(d=>d.ano===prevYear && d.mes===prevMonth).reduce((s,d)=>s+d.valor,0);
+  return { refYear, refMonth, prevYear, prevMonth, curTotal, prevTotal };
+}
+
+function renderKpiDelta(){
+  const mom = computeMoM();
+  const el = document.getElementById('kpiTotalDelta');
+  if(!mom || mom.prevTotal===0){
+    if(mom && mom.curTotal>0){
+      el.className = 'k-delta flat';
+      el.textContent = `Novo em ${MESES[mom.refMonth-1]}/${mom.refYear} · sem base de comparação`;
+    } else {
+      el.className = 'k-delta flat'; el.textContent = '';
+    }
+    return;
+  }
+  const pct = (mom.curTotal - mom.prevTotal) / mom.prevTotal * 100;
+  const dir = pct>1 ? 'up' : pct<-1 ? 'down' : 'flat';
+  const arrow = dir==='up' ? '▲' : dir==='down' ? '▼' : '■';
+  el.className = 'k-delta '+dir;
+  el.textContent = `${arrow} ${Math.abs(pct).toFixed(1)}% vs ${MESES[mom.prevMonth-1]}/${String(mom.prevYear).slice(2)} (${MESES[mom.refMonth-1]}/${String(mom.refYear).slice(2)})`;
+}
+
+/* ---------- Concentração de risco ---------- */
+function renderConcentracao(rows){
+  const byClient = {};
+  rows.forEach(d=> byClient[d.cliente] = (byClient[d.cliente]||0) + d.valor);
+  const total = Object.values(byClient).reduce((a,b)=>a+b,0);
+  const sorted = Object.entries(byClient).sort((a,b)=>b[1]-a[1]);
+  const N = Math.min(5, sorted.length);
+  const top = sorted.slice(0,N);
+  const topSum = top.reduce((s,e)=>s+e[1],0);
+  const pct = total ? (topSum/total*100) : 0;
+
+  const banner = document.getElementById('alertConcentracao');
+  const level = pct>=50 ? 'high' : pct>=30 ? 'mid' : 'ok';
+  banner.className = 'alert-banner' + (level==='high' ? '' : level==='mid' ? ' mid' : ' ok');
+  document.getElementById('alertConcBar').style.width = Math.min(pct,100)+'%';
+
+  const titleEl = document.getElementById('alertConcTitle');
+  const subEl = document.getElementById('alertConcSub');
+  if(sorted.length===0){
+    titleEl.textContent = 'Sem dados suficientes para avaliar concentração';
+    subEl.textContent = '—';
+    return;
+  }
+  const nomes = top.map(e=>e[0]).join(', ');
+  titleEl.textContent = level==='high'
+    ? `Alta concentração: os ${N} maiores clientes representam ${pct.toFixed(1)}% do faturamento`
+    : level==='mid'
+    ? `Concentração moderada: os ${N} maiores clientes representam ${pct.toFixed(1)}% do faturamento`
+    : `Boa pulverização: os ${N} maiores clientes representam ${pct.toFixed(1)}% do faturamento`;
+  subEl.textContent = level==='ok'
+    ? `Receita bem distribuída entre a carteira · principais: ${nomes}`
+    : `Perder qualquer um desses clientes tem impacto relevante na receita · principais: ${nomes}`;
+}
+
+/* ---------- Evolução mensal ---------- */
+function renderEvolucao(rows){
+  const tagEl = document.getElementById('tagEvolucao');
+  if(state.clientes.length===0) tagEl.textContent = 'Todos os clientes';
+  else if(state.clientes.length===1) tagEl.textContent = state.clientes[0];
+  else tagEl.textContent = `${state.clientes.length} clientes selecionados`;
+
+  const byMonth = {};
+  rows.forEach(d=>{
+    const k = d.vcto.slice(0,7);
+    byMonth[k] = (byMonth[k]||0) + d.valor;
+  });
+  const keys = Object.keys(byMonth).sort();
+  const labels = keys.map(k=>{
+    const [y,m] = k.split('-'); return MESES[parseInt(m)-1]+'/'+y.slice(2);
+  });
+  const values = keys.map(k=>byMonth[k]);
+
+  if(chEvolucao) chEvolucao.destroy();
+  const ctx = document.getElementById('chartEvolucao');
+  if(keys.length===0){ noData(ctx); return; }
+  chEvolucao = new Chart(ctx, {
+    type:'bar',
+    data:{ labels, datasets:[{
+      label:'Faturamento',
+      data:values,
+      backgroundColor:'#FF9F1C',
+      borderRadius:5,
+      maxBarThickness:34,
+      order:2
+    },{
+      type:'line', label:'Tendência', data:values, borderColor:'#0E2A47', borderWidth:2,
+      pointRadius:0, tension:.35, fill:false, order:1
+    }]},
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false}, tooltip:{callbacks:{label:c=>fmtBRLfull(c.raw)}} },
+      scales:{
+        y:{ ticks:{ callback:v=>fmtBRL(v) }, grid:{color:'#EEF1F5'} },
+        x:{ grid:{display:false} }
+      }
+    }
+  });
+}
+
+function noData(canvas){
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+}
+
+/* ---------- Top 10 clientes ---------- */
+function renderTop10(rows){
+  const byClient = {};
+  rows.forEach(d=> byClient[d.cliente] = (byClient[d.cliente]||0) + d.valor);
+  const top = Object.entries(byClient).sort((a,b)=>b[1]-a[1]).slice(0,10);
+
+  if(chTop10) chTop10.destroy();
+  const ctx = document.getElementById('chartTop10');
+  chTop10 = new Chart(ctx, {
+    type:'bar',
+    data:{
+      labels: top.map(t=> t[0].length>22 ? t[0].slice(0,20)+'…' : t[0]),
+      datasets:[{
+        data: top.map(t=>t[1]),
+        backgroundColor: top.map(t=> state.clientes.includes(t[0]) ? '#0E2A47' : '#3D7EA6'),
+        borderRadius:5,
+      }]
+    },
+    options:{
+      indexAxis:'y',
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false}, tooltip:{callbacks:{label:c=>fmtBRLfull(c.raw)}} },
+      scales:{ x:{ ticks:{callback:v=>fmtBRL(v)}, grid:{color:'#EEF1F5'} }, y:{ grid:{display:false} } },
+      onClick:(evt, els)=>{
+        if(els.length){
+          const idx = els[0].index;
+          const name = top[idx][0];
+          selectClient(name);
+        }
+      }
+    }
+  });
+}
+
+/* ---------- Histórico do cliente ---------- */
+function renderHistorico(){
+  const titleEl = document.getElementById('histTitle');
+  const tagEl = document.getElementById('histTag');
+  const wrap = document.getElementById('histWrap');
+
+  if(state.clientes.length===0){
+    titleEl.textContent = 'Histórico do cliente';
+    tagEl.textContent = 'selecione um ou mais clientes';
+    wrap.innerHTML = '<div class="empty-msg">Selecione um ou mais clientes no filtro, ou clique numa barra do Top 10 / mapa de calor, para ver o histórico mês a mês.</div>';
+    return;
+  }
+  if(!wrap.querySelector('canvas')){
+    wrap.innerHTML = '<canvas id="chartHistorico"></canvas>';
+  }
+  const selected = state.clientes;
+  const rows = DATA.filter(d=>selected.includes(d.cliente));
+  const total = rows.reduce((s,d)=>s+d.valor,0);
+
+  titleEl.textContent = selected.length===1 ? `Histórico — ${selected[0]}` : `Histórico — ${selected.length} clientes`;
+  tagEl.textContent = `${rows.length} faturas · ${fmtBRL(total)}`;
+
+  const allMonths = [...new Set(rows.map(d=>d.vcto.slice(0,7)))].sort();
+  const labels = allMonths.map(k=>{ const [y,m]=k.split('-'); return MESES[parseInt(m)-1]+'/'+y.slice(2); });
+
+  const datasets = selected.map((cli,i)=>{
+    const byMonth = {};
+    rows.filter(d=>d.cliente===cli).forEach(d=>{
+      const k = d.vcto.slice(0,7);
+      byMonth[k] = (byMonth[k]||0) + d.valor;
+    });
+    const color = PALETTE[i % PALETTE.length];
+    return {
+      label: cli,
+      data: allMonths.map(k=>byMonth[k]||0),
+      borderColor: color,
+      backgroundColor: color+'26',
+      fill: selected.length===1,
+      tension:.3,
+      pointBackgroundColor: color,
+      pointRadius: selected.length>1 ? 2.5 : 4,
+      borderWidth: 2.5
+    };
+  });
+
+  if(chHistorico) chHistorico.destroy();
+  const ctx = document.getElementById('chartHistorico');
+  chHistorico = new Chart(ctx, {
+    type:'line',
+    data:{ labels, datasets },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{
+        legend:{ display: selected.length>1, position:'bottom', labels:{boxWidth:10,font:{size:10.5}} },
+        tooltip:{callbacks:{label:c=>`${c.dataset.label}: ${fmtBRLfull(c.raw)}`}}
+      },
+      scales:{ y:{ ticks:{callback:v=>fmtBRL(v)}, grid:{color:'#EEF1F5'} }, x:{grid:{display:false}} }
+    }
+  });
+}
+
+/* ---------- Forma de recebimento ---------- */
+function renderForma(rows){
+  const byForma = {};
+  rows.forEach(d=> byForma[d.forma] = (byForma[d.forma]||0)+d.valor);
+  const entries = Object.entries(byForma).sort((a,b)=>b[1]-a[1]);
+
+  if(chForma) chForma.destroy();
+  const ctx = document.getElementById('chartForma');
+  if(entries.length===0){ noData(ctx); return; }
+  chForma = new Chart(ctx, {
+    type:'doughnut',
+    data:{
+      labels: entries.map(e=>e[0]),
+      datasets:[{ data: entries.map(e=>e[1]), backgroundColor: PALETTE, borderWidth:2, borderColor:'#fff' }]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false, cutout:'62%',
+      plugins:{
+        legend:{ position:'right', labels:{ boxWidth:10, font:{size:11} } },
+        tooltip:{ callbacks:{ label:c=> `${c.label}: ${fmtBRLfull(c.raw)}` } }
+      }
+    }
+  });
+}
+
+/* ---------- Tendência: crescimento e queda por cliente ---------- */
+let tendenciaSort = { key:'variacao', dir:'desc' };
+
+function computeTendencia(){
+  const months = [...new Set(DATA.map(d=>d.vcto.slice(0,7)))].sort();
+  if(months.length<2) return { recentMonths:[], prevMonths:[], rows:[] };
+  const recentMonths = months.slice(-3);
+  const prevMonths = months.slice(Math.max(0,months.length-6), months.length-3);
+
+  const byClient = {};
+  DATA.forEach(d=>{
+    if(!byClient[d.cliente]) byClient[d.cliente] = { recente:0, anterior:0 };
+    const k = d.vcto.slice(0,7);
+    if(recentMonths.includes(k)) byClient[d.cliente].recente += d.valor;
+    else if(prevMonths.includes(k)) byClient[d.cliente].anterior += d.valor;
+  });
+
+  const rows = Object.entries(byClient).map(([cliente,v])=>{
+    const variacao = v.recente - v.anterior;
+    let variacaoPct, situacao;
+    if(v.anterior>0){
+      variacaoPct = variacao/v.anterior*100;
+      situacao = variacaoPct>10 ? 'crescimento' : variacaoPct<-10 ? 'queda' : 'estavel';
+    } else if(v.recente>0){
+      variacaoPct = null; situacao = 'novo';
+    } else {
+      variacaoPct = 0; situacao = 'inativo';
+    }
+    return { cliente, anterior:v.anterior, recente:v.recente, variacao, variacaoPct, situacao };
+  }).filter(r=> r.anterior>0 || r.recente>0);
+
+  return { recentMonths, prevMonths, rows };
+}
+const TENDENCIA_BASE = computeTendencia();
+
+const SITUACAO_INFO = {
+  crescimento:{ label:'Crescimento', cls:'badge-ok' },
+  queda:{ label:'Queda', cls:'badge-danger' },
+  estavel:{ label:'Estável', cls:'badge-warn' },
+  novo:{ label:'Novo', cls:'badge-ok' },
+  inativo:{ label:'Inativo', cls:'badge-warn' },
+};
+
+function renderTendencia(){
+  const { recentMonths, prevMonths, rows: baseRows } = TENDENCIA_BASE;
+  if(recentMonths.length===0){
+    document.getElementById('tagTendencia').textContent = 'dados insuficientes';
+    return;
+  }
+  const fmtRange = ms => `${MESES[parseInt(ms[0].slice(5,7))-1]}/${ms[0].slice(2,4)} a ${MESES[parseInt(ms[ms.length-1].slice(5,7))-1]}/${ms[ms.length-1].slice(2,4)}`;
+  document.getElementById('tendenciaSub').textContent =
+    `Compara ${fmtRange(recentMonths)} (recente) com ${fmtRange(prevMonths)} (anterior), por cliente`;
+
+  let rows = baseRows.slice();
+  if(state.clientes.length) rows = rows.filter(r=>state.clientes.includes(r.cliente));
+
+  const nCresc = rows.filter(r=>r.situacao==='crescimento').length;
+  const nQueda = rows.filter(r=>r.situacao==='queda').length;
+  document.getElementById('tagTendencia').textContent = `${nCresc} em crescimento · ${nQueda} em queda`;
+
+  // chart: top 8 crescimento + top 8 queda, diverging
+  const cresc = rows.filter(r=>r.variacao>0).sort((a,b)=>b.variacao-a.variacao).slice(0,8);
+  const queda = rows.filter(r=>r.variacao<0).sort((a,b)=>a.variacao-b.variacao).slice(0,8).reverse();
+  const combo = [...queda, ...cresc];
+
+  if(chTendencia) chTendencia.destroy();
+  const ctx = document.getElementById('chartTendencia');
+  if(combo.length===0){ noData(ctx); }
+  else {
+    chTendencia = new Chart(ctx, {
+      type:'bar',
+      data:{
+        labels: combo.map(r=> r.cliente.length>22 ? r.cliente.slice(0,20)+'…' : r.cliente),
+        datasets:[{
+          data: combo.map(r=>r.variacao),
+          backgroundColor: combo.map(r=> r.variacao>=0 ? '#2E8B57' : '#E4572E'),
+          borderRadius:5,
+        }]
+      },
+      options:{
+        indexAxis:'y', responsive:true, maintainAspectRatio:false,
+        plugins:{ legend:{display:false}, tooltip:{callbacks:{
+          label:c=>{
+            const r = combo[c.dataIndex];
+            const pct = r.variacaoPct===null ? 'novo' : `${r.variacaoPct>0?'+':''}${r.variacaoPct.toFixed(0)}%`;
+            return `${fmtBRLfull(r.variacao)} (${pct})`;
+          }
+        }}},
+        scales:{ x:{ ticks:{callback:v=>fmtBRL(v)}, grid:{color:'#EEF1F5'} }, y:{ grid:{display:false} } }
+      }
+    });
+  }
+
+  // table
+  rows.sort((a,b)=>{
+    let av=a[tendenciaSort.key], bv=b[tendenciaSort.key];
+    if(av===null) av = -Infinity;
+    if(bv===null) bv = -Infinity;
+    if(typeof av === 'string'){ av=av.toLowerCase(); bv=bv.toLowerCase(); }
+    if(av<bv) return tendenciaSort.dir==='asc'?-1:1;
+    if(av>bv) return tendenciaSort.dir==='asc'?1:-1;
+    return 0;
+  });
+  const tbody = document.getElementById('tblTendenciaBody');
+  tbody.innerHTML = rows.map(r=>{
+    const info = SITUACAO_INFO[r.situacao];
+    const pctTxt = r.variacaoPct===null ? '—' : `${r.variacaoPct>0?'+':''}${r.variacaoPct.toFixed(1)}%`;
+    return `<tr>
+      <td class="client-name-cell" onclick="selectClient('${r.cliente.replace(/'/g,"\\'")}')">${r.cliente}</td>
+      <td class="num">${fmtBRL(r.anterior)}</td>
+      <td class="num">${fmtBRL(r.recente)}</td>
+      <td class="num" style="color:${r.variacao>=0?'var(--success)':'var(--danger)'};font-weight:600;">${r.variacao>=0?'+':''}${fmtBRL(r.variacao)}</td>
+      <td class="num">${pctTxt}</td>
+      <td><span class="badge ${info.cls}">${info.label}</span></td>
+    </tr>`;
+  }).join('');
+
+  document.querySelectorAll('#tblTendencia th').forEach(th=>{
+    const arrow = th.querySelector('.arrow');
+    if(arrow) arrow.textContent = th.dataset.key===tendenciaSort.key ? (tendenciaSort.dir==='asc'?'▲':'▼') : '';
+  });
+}
+document.querySelectorAll('#tblTendencia th').forEach(th=>{
+  if(!th.dataset.key) return;
+  th.addEventListener('click', ()=>{
+    const key = th.dataset.key;
+    if(tendenciaSort.key===key) tendenciaSort.dir = tendenciaSort.dir==='asc'?'desc':'asc';
+    else { tendenciaSort.key=key; tendenciaSort.dir = key==='cliente'?'asc':'desc'; }
+    renderTendencia();
+  });
+});
+
+/* ---------- Recência ---------- */
+function computeRecencia(){
+  const byClient = {};
+  DATA.forEach(d=>{
+    if(!byClient[d.cliente]) byClient[d.cliente] = { total:0, qtd:0, ultima:'0000-00-00' };
+    byClient[d.cliente].total += d.valor;
+    byClient[d.cliente].qtd += 1;
+    if(d.emissao > byClient[d.cliente].ultima) byClient[d.cliente].ultima = d.emissao;
+  });
+  return Object.entries(byClient).map(([cliente,v])=>{
+    const dias = Math.floor((TODAY - new Date(v.ultima)) / 86400000);
+    let status = 'ok';
+    if(dias>60) status='danger'; else if(dias>30) status='warn';
+    return { cliente, ultima:v.ultima, dias, total:v.total, qtd:v.qtd, status };
+  });
+}
+const RECENCIA = computeRecencia();
+
+function renderRecencia(){
+  let rows = RECENCIA.slice();
+  if(state.clientes.length) rows = rows.filter(r=>state.clientes.includes(r.cliente));
+
+  rows.sort((a,b)=>{
+    let av=a[recSort.key], bv=b[recSort.key];
+    if(typeof av === 'string'){ av=av.toLowerCase(); bv=bv.toLowerCase(); }
+    if(av<bv) return recSort.dir==='asc'?-1:1;
+    if(av>bv) return recSort.dir==='asc'?1:-1;
+    return 0;
+  });
+
+  const tbody = document.getElementById('tblRecenciaBody');
+  tbody.innerHTML = rows.map(r=>{
+    const badge = r.status==='ok' ? '<span class="badge badge-ok">Ativo</span>'
+                : r.status==='warn' ? '<span class="badge badge-warn">Atenção</span>'
+                : '<span class="badge badge-danger">Risco</span>';
+    return `<tr>
+      <td class="client-name-cell" onclick="selectClient('${r.cliente.replace(/'/g,"\\'")}')">${r.cliente}</td>
+      <td>${fmtDateBR(r.ultima)}</td>
+      <td class="num">${r.dias}</td>
+      <td class="num">${fmtBRL(r.total)}</td>
+      <td class="num">${r.qtd}</td>
+      <td>${badge}</td>
+    </tr>`;
+  }).join('');
+
+  document.querySelectorAll('#tblRecencia th').forEach(th=>{
+    const arrow = th.querySelector('.arrow');
+    if(arrow) arrow.textContent = th.dataset.key===recSort.key ? (recSort.dir==='asc'?'▲':'▼') : '';
+  });
+}
+document.querySelectorAll('#tblRecencia th').forEach(th=>{
+  th.addEventListener('click', ()=>{
+    const key = th.dataset.key;
+    if(recSort.key===key) recSort.dir = recSort.dir==='asc'?'desc':'asc';
+    else { recSort.key=key; recSort.dir = key==='cliente'?'asc':'desc'; }
+    renderRecencia();
+  });
+});
+
+/* ---------- Prioridade de contato ---------- */
+let prioSort = { key:'score', dir:'desc' };
+
+function computePrioridade(){
+  // só entram clientes que pararam de comprar (mais de 30 dias) — quem comprou há pouco não precisa de contato
+  const candidatos = RECENCIA.filter(r=>r.dias>30);
+  if(candidatos.length===0) return [];
+  const maxDias = Math.max(...candidatos.map(r=>r.dias));
+  const maxValor = Math.max(...candidatos.map(r=>r.total));
+  const scored = candidatos.map(r=>{
+    const normDias = maxDias ? r.dias/maxDias : 0;
+    const normValor = maxValor ? r.total/maxValor : 0;
+    const score = normDias*0.6 + normValor*0.4; // urgência pesa mais recência, mas valor histórico também conta
+    return { ...r, score };
+  }).sort((a,b)=>b.score-a.score);
+
+  const n = scored.length;
+  scored.forEach((r,i)=>{
+    const pct = i/n; // 0 = maior score
+    r.tier = pct < 0.2 ? 'alta' : pct < 0.5 ? 'media' : 'baixa';
+  });
+  return scored;
+}
+const PRIORIDADE_BASE = computePrioridade();
+
+function renderPrioridade(){
+  let rows = PRIORIDADE_BASE.slice();
+  if(state.clientes.length) rows = rows.filter(r=>state.clientes.includes(r.cliente));
+
+  document.getElementById('tagPrioridade').textContent = `${rows.length} clientes parados (+30 dias)`;
+
+  rows.sort((a,b)=>{
+    let av=a[prioSort.key], bv=b[prioSort.key];
+    if(typeof av === 'string'){ av=av.toLowerCase(); bv=bv.toLowerCase(); }
+    if(av<bv) return prioSort.dir==='asc'?-1:1;
+    if(av>bv) return prioSort.dir==='asc'?1:-1;
+    return 0;
+  });
+
+  const tierInfo = {
+    alta:{ label:'Alta', cls:'badge-danger' },
+    media:{ label:'Média', cls:'badge-warn' },
+    baixa:{ label:'Baixa', cls:'badge-ok' },
+  };
+
+  const tbody = document.getElementById('tblPrioridadeBody');
+  tbody.innerHTML = rows.map((r,i)=>{
+    const t = tierInfo[r.tier];
+    return `<tr>
+      <td class="num">${i+1}</td>
+      <td class="client-name-cell" onclick="selectClient('${r.cliente.replace(/'/g,"\\'")}')">${r.cliente}</td>
+      <td class="num">${r.dias}</td>
+      <td>${fmtDateBR(r.ultima)}</td>
+      <td class="num">${fmtBRL(r.total)}</td>
+      <td class="num">${r.qtd}</td>
+      <td><span class="badge ${t.cls}">${t.label}</span></td>
+    </tr>`;
+  }).join('');
+
+  document.querySelectorAll('#tblPrioridade th').forEach(th=>{
+    const arrow = th.querySelector('.arrow');
+    if(arrow) arrow.textContent = th.dataset.key===prioSort.key ? (prioSort.dir==='asc'?'▲':'▼') : '';
+  });
+}
+document.querySelectorAll('#tblPrioridade th').forEach(th=>{
+  if(!th.dataset.key) return;
+  th.addEventListener('click', ()=>{
+    const key = th.dataset.key;
+    if(prioSort.key===key) prioSort.dir = prioSort.dir==='asc'?'desc':'asc';
+    else { prioSort.key=key; prioSort.dir = key==='cliente'?'asc':'desc'; }
+    renderPrioridade();
+  });
+});
+
+function selectClient(name){
+  state.clientes = [name];
+  updateMsLabel();
+  const cb = document.querySelector(`#msList input[value="${name.replace(/"/g,'&quot;')}"]`);
+  if(cb) cb.checked = true;
+  render();
+  document.getElementById('histWrap').scrollIntoView({behavior:'smooth', block:'center'});
+}
+
+/* ---------- Heatmap ---------- */
+function renderHeatmap(){
+  const byClient = {};
+  DATA.forEach(d=>{ byClient[d.cliente] = (byClient[d.cliente]||0)+d.valor; });
+  let top20;
+  if(state.clientes.length){
+    top20 = state.clientes.slice().sort((a,b)=>(byClient[b]||0)-(byClient[a]||0)).slice(0,20);
+  } else {
+    top20 = Object.entries(byClient).sort((a,b)=>b[1]-a[1]).slice(0,20).map(e=>e[0]);
+  }
+
+  const monthKeys = [...new Set(DATA.map(d=>d.vcto.slice(0,7)))].sort();
+  const matrix = {};
+  top20.forEach(c=> matrix[c] = {});
+  DATA.forEach(d=>{
+    if(top20.includes(d.cliente)){
+      const k = d.vcto.slice(0,7);
+      matrix[d.cliente][k] = (matrix[d.cliente][k]||0) + d.valor;
+    }
+  });
+  const maxVal = Math.max(...top20.flatMap(c => Object.values(matrix[c])), 1);
+
+  function cellColor(v){
+    if(!v) return '#F3F5F8';
+    const ratio = Math.sqrt(v/maxVal);
+    // interpolate steel -> amber
+    const r1=0x3D,g1=0x7E,b1=0xA6, r2=0xFF,g2=0x9F,b2=0x1C;
+    const r=Math.round(r1+(r2-r1)*ratio), g=Math.round(g1+(g2-g1)*ratio), b=Math.round(b1+(b2-b1)*ratio);
+    return `rgb(${r},${g},${b})`;
+  }
+  function textColor(v){
+    if(!v) return '#B7BFCB';
+    const ratio = Math.sqrt(v/maxVal);
+    return ratio>0.55 ? '#0E2A47' : '#fff';
+  }
+
+  const table = document.getElementById('heatTable');
+  let thead = '<thead><tr><th>Cliente</th>';
+  monthKeys.forEach(k=>{ const [y,m]=k.split('-'); thead += `<th>${MESES[parseInt(m)-1]}/${y.slice(2)}</th>`; });
+  thead += '</tr></thead>';
+
+  let tbody = '<tbody>';
+  top20.forEach(c=>{
+    tbody += `<tr><td class="heat-name" onclick="selectClient('${c.replace(/'/g,"\\'")}')">${c.length>24?c.slice(0,22)+'…':c}</td>`;
+    monthKeys.forEach(k=>{
+      const v = matrix[c][k]||0;
+      const short = v ? (v>=1000 ? (v/1000).toFixed(0)+'k' : v.toFixed(0)) : '';
+      tbody += `<td><div class="heat-cell" style="background:${cellColor(v)};color:${textColor(v)}" title="${c} · ${k} · ${fmtBRLfull(v)}">${short}</div></td>`;
+    });
+    tbody += '</tr>';
+  });
+  tbody += '</tbody>';
+  table.innerHTML = thead + tbody;
+}
+
+/* ---------- Faturamento potencial perdido ---------- */
+let perdidoRange = { min:null, max:null };
+let perdidoSort = { key:'perdido', dir:'desc' };
+
+function computePotencialPerdido(){
+  const byClient = {};
+  DATA.forEach(d=>{
+    if(!byClient[d.cliente]) byClient[d.cliente] = [];
+    byClient[d.cliente].push(d);
+  });
+
+  const out = [];
+  Object.entries(byClient).forEach(([cliente, rows])=>{
+    if(rows.length < 2) return; // sem histórico de cadência suficiente
+    const datas = rows.map(r=>new Date(r.emissao)).sort((a,b)=>a-b);
+    const total = rows.reduce((s,r)=>s+r.valor,0);
+    const ticket = total / rows.length;
+
+    let sumInt = 0;
+    for(let i=1;i<datas.length;i++){
+      sumInt += (datas[i]-datas[i-1]) / 86400000;
+    }
+    const intervalo = sumInt / (datas.length-1);
+    if(intervalo<=0) return;
+
+    const ultima = datas[datas.length-1];
+    const dias = Math.floor((TODAY - ultima) / 86400000);
+    const ciclos = Math.floor(dias / intervalo);
+    if(ciclos<=0) return;
+    const perdido = ciclos * ticket;
+
+    out.push({
+      cliente, ticket, intervalo: Math.round(intervalo), dias, ciclos,
+      perdido, ultima: ultima.toISOString().slice(0,10)
+    });
+  });
+  return out;
+}
+const PERDIDO_BASE = computePotencialPerdido();
+
+function renderPerdido(){
+  let rows = PERDIDO_BASE.slice();
+  if(state.clientes.length) rows = rows.filter(r=>state.clientes.includes(r.cliente));
+  if(perdidoRange.min!==null) rows = rows.filter(r=>r.dias>=perdidoRange.min);
+  if(perdidoRange.max!==null) rows = rows.filter(r=>r.dias<=perdidoRange.max);
+
+  // ticket médio do GRUPO: média dos tickets médios dos clientes parados dentro do intervalo escolhido
+  const ticketGrupo = rows.length ? rows.reduce((s,r)=>s+r.ticket,0) / rows.length : 0;
+  rows = rows.map(r=> ({ ...r, perdidoGrupo: r.ciclos * ticketGrupo }));
+
+  const totalPerdido = rows.reduce((s,r)=>s+r.perdidoGrupo,0);
+  const totalCiclos = rows.reduce((s,r)=>s+r.ciclos,0);
+  document.getElementById('kpiPerdidoTotal').textContent = fmtBRL(totalPerdido);
+  document.getElementById('kpiPerdidoNote').textContent = perdidoRange.min!==null || perdidoRange.max!==null
+    ? `entre ${perdidoRange.min ?? 0} e ${perdidoRange.max ?? '∞'} dias sem comprar · ticket médio do grupo: ${fmtBRL(ticketGrupo)}`
+    : `todos os clientes parados · ticket médio do grupo: ${fmtBRL(ticketGrupo)}`;
+  document.getElementById('kpiPerdidoClientes').textContent = rows.length.toLocaleString('pt-BR');
+  document.getElementById('kpiPerdidoCiclos').textContent = totalCiclos.toLocaleString('pt-BR');
+  document.getElementById('tagPerdido').textContent = `${rows.length} clientes na estimativa · ticket do grupo ${fmtBRL(ticketGrupo)}`;
+
+  // chart: top 12 by potencial perdido
+  const top = rows.slice().sort((a,b)=>b.perdidoGrupo-a.perdidoGrupo).slice(0,12);
+  if(chPerdido) chPerdido.destroy();
+  const ctx = document.getElementById('chartPerdido');
+  if(top.length===0){ noData(ctx); }
+  else {
+    chPerdido = new Chart(ctx, {
+      type:'bar',
+      data:{
+        labels: top.map(r=> r.cliente.length>22 ? r.cliente.slice(0,20)+'…' : r.cliente),
+        datasets:[{ data: top.map(r=>r.perdidoGrupo), backgroundColor:'#E4572E', borderRadius:5 }]
+      },
+      options:{
+        indexAxis:'y', responsive:true, maintainAspectRatio:false,
+        plugins:{ legend:{display:false}, tooltip:{callbacks:{
+          label:c=>{
+            const r = top[c.dataIndex];
+            return `${fmtBRLfull(r.perdidoGrupo)} · ${r.ciclos} ciclo(s) · ticket do grupo ${fmtBRLfull(ticketGrupo)}`;
+          }
+        }}},
+        scales:{ x:{ ticks:{callback:v=>fmtBRL(v)}, grid:{color:'#EEF1F5'} }, y:{ grid:{display:false} } }
+      }
+    });
+  }
+
+  // table
+  rows.sort((a,b)=>{
+    let av = a[perdidoSort.key==='perdido' ? 'perdidoGrupo' : perdidoSort.key];
+    let bv = b[perdidoSort.key==='perdido' ? 'perdidoGrupo' : perdidoSort.key];
+    if(typeof av==='string'){ av=av.toLowerCase(); bv=bv.toLowerCase(); }
+    if(av<bv) return perdidoSort.dir==='asc'?-1:1;
+    if(av>bv) return perdidoSort.dir==='asc'?1:-1;
+    return 0;
+  });
+  const tbody = document.getElementById('tblPerdidoBody');
+  tbody.innerHTML = rows.map(r=>`<tr>
+    <td class="client-name-cell" onclick="selectClient('${r.cliente.replace(/'/g,"\\'")}')">${r.cliente}</td>
+    <td class="num" style="color:var(--muted)">${fmtBRL(r.ticket)}</td>
+    <td class="num">${r.intervalo} dias</td>
+    <td class="num">${r.dias} dias</td>
+    <td class="num">${r.ciclos}</td>
+    <td class="num" style="font-weight:700;color:var(--danger)">${fmtBRL(r.perdidoGrupo)}</td>
+  </tr>`).join('');
+
+  document.querySelectorAll('#tblPerdido th').forEach(th=>{
+    const arrow = th.querySelector('.arrow');
+    if(arrow) arrow.textContent = th.dataset.key===perdidoSort.key ? (perdidoSort.dir==='asc'?'▲':'▼') : '';
+  });
+}
+document.querySelectorAll('#tblPerdido th').forEach(th=>{
+  if(!th.dataset.key) return;
+  th.addEventListener('click', ()=>{
+    const key = th.dataset.key;
+    if(perdidoSort.key===key) perdidoSort.dir = perdidoSort.dir==='asc'?'desc':'asc';
+    else { perdidoSort.key=key; perdidoSort.dir = key==='cliente'?'asc':'desc'; }
+    renderPerdido();
+  });
+});
+document.getElementById('btnPerdidoAplicar').addEventListener('click', ()=>{
+  const minV = document.getElementById('fPerdidoMin').value;
+  const maxV = document.getElementById('fPerdidoMax').value;
+  perdidoRange.min = minV==='' ? null : Number(minV);
+  perdidoRange.max = maxV==='' ? null : Number(maxV);
+  renderPerdido();
+});
+document.getElementById('btnPerdidoLimpar').addEventListener('click', ()=>{
+  perdidoRange = { min:null, max:null };
+  document.getElementById('fPerdidoMin').value='';
+  document.getElementById('fPerdidoMax').value='';
+  renderPerdido();
+});
+
+/* ---------- Curva ABC ---------- */
+function renderAbc(rows){
+  const byClient = {};
+  rows.forEach(d=> byClient[d.cliente] = (byClient[d.cliente]||0)+d.valor);
+  const sorted = Object.entries(byClient).sort((a,b)=>b[1]-a[1]);
+  const total = sorted.reduce((s,e)=>s+e[1],0);
+  let cum=0;
+  const cumPct = sorted.map(e=>{ cum+=e[1]; return total? (cum/total*100):0; });
+
+  const nA = cumPct.findIndex(p=>p>=80)+1;
+  document.getElementById('abcTag').textContent = `Classe A: ${nA>0?nA:0} de ${sorted.length} clientes`;
+
+  if(chAbc) chAbc.destroy();
+  const ctx = document.getElementById('chartAbc');
+  if(sorted.length===0){ noData(ctx); return; }
+  const labels = sorted.map((e,i)=> i<15 ? (e[0].length>14?e[0].slice(0,12)+'…':e[0]) : '');
+  chAbc = new Chart(ctx, {
+    data:{
+      labels: sorted.length>40 ? labels.slice(0,40) : labels,
+      datasets:[
+        { type:'bar', label:'Faturamento', data: sorted.slice(0, sorted.length>40?40:sorted.length).map(e=>e[1]),
+          backgroundColor:'#3D7EA6', order:2, yAxisID:'y' },
+        { type:'line', label:'% Acumulado', data: cumPct.slice(0, sorted.length>40?40:sorted.length),
+          borderColor:'#FF9F1C', borderWidth:2.5, pointRadius:0, yAxisID:'y1', order:1, tension:.2 }
+      ]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{ position:'top', labels:{boxWidth:10,font:{size:10.5}} } },
+      scales:{
+        y:{ position:'left', ticks:{callback:v=>fmtBRL(v)}, grid:{color:'#EEF1F5'} },
+        y1:{ position:'right', min:0, max:100, ticks:{callback:v=>v+'%'}, grid:{display:false} },
+        x:{ ticks:{ display: sorted.length<=40, maxRotation:60, minRotation:60, font:{size:9} }, grid:{display:false} }
+      }
+    }
+  });
+}
+
+/* ---------- Sazonalidade ---------- */
+function renderSazonal(){
+  const rows = state.clientes.length ? DATA.filter(d=>state.clientes.includes(d.cliente)) : DATA;
+  const byMonth = new Array(12).fill(0);
+  rows.forEach(d=> byMonth[d.mes-1] += d.valor);
+
+  if(chSazonal) chSazonal.destroy();
+  const ctx = document.getElementById('chartSazonal');
+  chSazonal = new Chart(ctx, {
+    type:'bar',
+    data:{ labels: MESES, datasets:[{ data: byMonth, backgroundColor: byMonth.map((v,i)=> i===new Date().getMonth()? '#0E2A47':'#FF9F1C'), borderRadius:5 }] },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false}, tooltip:{callbacks:{label:c=>fmtBRLfull(c.raw)}} },
+      scales:{ y:{ ticks:{callback:v=>fmtBRL(v)}, grid:{color:'#EEF1F5'} }, x:{grid:{display:false}} }
+    }
+  });
+}
+
+/* ---------- Matriz RFV (Recência x Frequência, bolha = Valor) ---------- */
+const RFV_QUAD = {
+  campeoes:   { label:'Campeões',         color:'#2E8B57' },
+  fieis:      { label:'Fiéis / Frequentes', color:'#3D7EA6' },
+  risco:      { label:'Em risco',         color:'#E4572E' },
+  perdidos:   { label:'Perdidos / Ocasionais', color:'#9AA5B1' },
+};
+
+function computeRfv(){
+  const dias = RECENCIA.map(r=>r.dias).sort((a,b)=>a-b);
+  const freq = RECENCIA.map(r=>r.qtd).sort((a,b)=>a-b);
+  const median = arr => {
+    const n = arr.length;
+    return n%2 ? arr[(n-1)/2] : (arr[n/2-1]+arr[n/2])/2;
+  };
+  const medDias = median(dias);
+  const medFreq = median(freq);
+
+  return RECENCIA.map(r=>{
+    let quad;
+    if(r.dias<=medDias && r.qtd>=medFreq) quad='campeoes';
+    else if(r.dias<=medDias && r.qtd<medFreq) quad='fieis';
+    else if(r.dias>medDias && r.qtd>=medFreq) quad='risco';
+    else quad='perdidos';
+    return { ...r, quad };
+  }).map(r=>({...r, medDias, medFreq}));
+}
+
+function renderRfv(){
+  const rfv = computeRfv();
+  const medDias = rfv[0] ? rfv[0].medDias : 0;
+  const medFreq = rfv[0] ? rfv[0].medFreq : 0;
+  const maxValor = Math.max(...rfv.map(r=>r.total), 1);
+  const maxDias = Math.max(...rfv.map(r=>r.dias), 1);
+  const maxFreq = Math.max(...rfv.map(r=>r.qtd), 1);
+
+  const datasets = Object.keys(RFV_QUAD).map(key=>{
+    const pts = rfv.filter(r=>r.quad===key);
+    return {
+      label: `${RFV_QUAD[key].label} (${pts.length})`,
+      data: pts.map(r=>({ x:r.dias, y:r.qtd, r: 4 + Math.sqrt(r.total/maxValor)*22, cliente:r.cliente, total:r.total })),
+      backgroundColor: RFV_QUAD[key].color + 'CC',
+      borderColor: RFV_QUAD[key].color,
+      borderWidth:1,
+    };
+  });
+  // median reference lines
+  datasets.push({
+    type:'line', label:'Mediana frequência', data:[{x:0,y:medFreq},{x:maxDias*1.05,y:medFreq}],
+    borderColor:'#B7BFCB', borderDash:[5,4], borderWidth:1.3, pointRadius:0, showLine:true, order:0
+  });
+  datasets.push({
+    type:'line', label:'Mediana recência', data:[{x:medDias,y:0},{x:medDias,y:maxFreq*1.15}],
+    borderColor:'#B7BFCB', borderDash:[5,4], borderWidth:1.3, pointRadius:0, showLine:true, order:0
+  });
+
+  if(chRfv) chRfv.destroy();
+  const ctx = document.getElementById('chartRfv');
+  chRfv = new Chart(ctx, {
+    type:'bubble',
+    data:{ datasets },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{
+        legend:{ position:'bottom', labels:{ boxWidth:10, font:{size:10.5}, filter:item=>!item.text.startsWith('Mediana') } },
+        tooltip:{ callbacks:{
+          label:c=>{
+            const d = c.raw;
+            if(d.cliente===undefined) return null;
+            return `${d.cliente} · ${d.x}d sem comprar · ${d.y} faturas · ${fmtBRLfull(d.total)}`;
+          }
+        }}
+      },
+      scales:{
+        x:{ title:{display:true,text:'Dias sem comprar (recência)'}, grid:{color:'#EEF1F5'} },
+        y:{ title:{display:true,text:'Nº de faturas (frequência)'}, grid:{color:'#EEF1F5'}, min:0 }
+      }
+    }
+  });
+
+  // summary table per quadrant
+  const tbody = document.getElementById('tblRfvBody');
+  const rows = Object.keys(RFV_QUAD).map(key=>{
+    const pts = rfv.filter(r=>r.quad===key).sort((a,b)=>b.total-a.total);
+    const total = pts.reduce((s,r)=>s+r.total,0);
+    const avgDias = pts.length ? Math.round(pts.reduce((s,r)=>s+r.dias,0)/pts.length) : 0;
+    const topNames = pts.slice(0,4).map(r=>r.cliente).join(', ');
+    return `<tr>
+      <td><span class="badge" style="background:${RFV_QUAD[key].color}22;color:${RFV_QUAD[key].color}">${RFV_QUAD[key].label}</span></td>
+      <td class="num">${pts.length}</td>
+      <td class="num">${fmtBRL(total)}</td>
+      <td class="num">${avgDias} dias</td>
+      <td style="font-size:12px;color:var(--muted)">${topNames}${pts.length>4?'…':''}</td>
+    </tr>`;
+  }).join('');
+  tbody.innerHTML = rows;
+
+  RFV_LAST = rfv;
+  renderRfvLista();
+  renderTicketSegmento(rfv);
+}
+
+/* ---------- Ticket médio por segmento ---------- */
+function renderTicketSegmento(rfv){
+  const byQuad = {};
+  Object.keys(RFV_QUAD).forEach(k=> byQuad[k] = { total:0, qtd:0 });
+  rfv.forEach(r=>{
+    byQuad[r.quad].total += r.total;
+    byQuad[r.quad].qtd += r.qtd;
+  });
+  const labels = Object.keys(RFV_QUAD).map(k=>RFV_QUAD[k].label);
+  const tickets = Object.keys(RFV_QUAD).map(k=> byQuad[k].qtd ? byQuad[k].total/byQuad[k].qtd : 0);
+  const colors = Object.keys(RFV_QUAD).map(k=>RFV_QUAD[k].color);
+
+  if(chTicketSeg) chTicketSeg.destroy();
+  const ctx = document.getElementById('chartTicketSegmento');
+  chTicketSeg = new Chart(ctx, {
+    type:'bar',
+    data:{ labels, datasets:[{ data: tickets, backgroundColor: colors, borderRadius:5 }] },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false}, tooltip:{callbacks:{label:c=>fmtBRLfull(c.raw)}} },
+      scales:{ y:{ ticks:{callback:v=>fmtBRL(v)}, grid:{color:'#EEF1F5'} }, x:{ grid:{display:false}, ticks:{font:{size:10}} } }
+    }
+  });
+
+  // insight text
+  const entries = Object.keys(RFV_QUAD).map((k,i)=>({ label:labels[i], valor:tickets[i] }));
+  const maxE = entries.reduce((a,b)=> b.valor>a.valor?b:a);
+  const minE = entries.reduce((a,b)=> b.valor<a.valor?b:a);
+  const diffPct = minE.valor ? ((maxE.valor-minE.valor)/minE.valor*100) : 0;
+  const insightEl = document.getElementById('ticketSegmentoInsight');
+  const riscoTicket = tickets[Object.keys(RFV_QUAD).indexOf('risco')];
+  const campeoesTicket = tickets[Object.keys(RFV_QUAD).indexOf('campeoes')];
+  let extra = '';
+  if(campeoesTicket>0){
+    const relRisco = ((riscoTicket-campeoesTicket)/campeoesTicket*100);
+    extra = `<br><br>Clientes <b>em risco</b> têm ticket médio ${relRisco>=0?'<b style="color:var(--danger)">'+relRisco.toFixed(0)+'% maior</b>':'<b style="color:var(--success)">'+Math.abs(relRisco).toFixed(0)+'% menor</b>'} que os Campeões — ${relRisco>=0 ? 'ou seja, quem está sumindo são justamente clientes de ticket alto, com maior impacto potencial se não forem recuperados.' : 'ou seja, a maior parte do risco está concentrada em clientes de ticket menor.'}`;
+  }
+  insightEl.innerHTML = `O segmento <b>${maxE.label}</b> tem o maior ticket médio (${fmtBRL(maxE.valor)}), enquanto <b>${minE.label}</b> tem o menor (${fmtBRL(minE.valor)}) — uma diferença de ${diffPct.toFixed(0)}%.${extra}`;
+}
+
+/* ---------- Lista individual RFV ---------- */
+let rfvListaSort = { key:'total', dir:'desc' };
+let RFV_LAST = [];
+
+function renderRfvLista(){
+  const segFilter = document.getElementById('fRfvSegmento').value;
+  const busca = document.getElementById('fRfvBusca').value.toLowerCase().trim();
+
+  let rows = RFV_LAST.slice();
+  if(state.clientes.length) rows = rows.filter(r=>state.clientes.includes(r.cliente));
+  if(segFilter) rows = rows.filter(r=>r.quad===segFilter);
+  if(busca) rows = rows.filter(r=>r.cliente.toLowerCase().includes(busca));
+
+  rows.sort((a,b)=>{
+    let av=a[rfvListaSort.key], bv=b[rfvListaSort.key];
+    if(typeof av === 'string'){ av=av.toLowerCase(); bv=bv.toLowerCase(); }
+    if(av<bv) return rfvListaSort.dir==='asc'?-1:1;
+    if(av>bv) return rfvListaSort.dir==='asc'?1:-1;
+    return 0;
+  });
+
+  document.getElementById('tagRfvLista').textContent = `${rows.length} clientes`;
+
+  const tbody = document.getElementById('tblRfvListaBody');
+  tbody.innerHTML = rows.map(r=>{
+    const info = RFV_QUAD[r.quad];
+    return `<tr>
+      <td class="client-name-cell" onclick="selectClient('${r.cliente.replace(/'/g,"\\'")}')">${r.cliente}</td>
+      <td><span class="badge" style="background:${info.color}22;color:${info.color}">${info.label}</span></td>
+      <td class="num">${r.dias}</td>
+      <td class="num">${r.qtd}</td>
+      <td class="num">${fmtBRL(r.total)}</td>
+    </tr>`;
+  }).join('');
+
+  document.querySelectorAll('#tblRfvLista th').forEach(th=>{
+    const arrow = th.querySelector('.arrow');
+    if(arrow) arrow.textContent = th.dataset.key===rfvListaSort.key ? (rfvListaSort.dir==='asc'?'▲':'▼') : '';
+  });
+}
+document.querySelectorAll('#tblRfvLista th').forEach(th=>{
+  if(!th.dataset.key) return;
+  th.addEventListener('click', ()=>{
+    const key = th.dataset.key;
+    if(rfvListaSort.key===key) rfvListaSort.dir = rfvListaSort.dir==='asc'?'desc':'asc';
+    else { rfvListaSort.key=key; rfvListaSort.dir = key==='cliente'||key==='quad' ? 'asc':'desc'; }
+    renderRfvLista();
+  });
+});
+document.getElementById('fRfvSegmento').addEventListener('change', renderRfvLista);
+document.getElementById('fRfvBusca').addEventListener('input', renderRfvLista);
+
+/* ===================== EVENTS ===================== */
+selAno.addEventListener('change', ()=>{ state.ano = selAno.value; render(); });
+selMes.addEventListener('change', ()=>{ state.mes = selMes.value; render(); });
+document.getElementById('btnReset').addEventListener('click', ()=>{
+  state = { ano:'', mes:'', clientes:[] };
+  selAno.value=''; selMes.value='';
+  updateMsLabel();
+  render();
+});
+
+/* ===================== INIT ===================== */
+render();
+
+</script>
+</body>
+</html>
